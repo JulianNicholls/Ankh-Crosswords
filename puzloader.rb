@@ -1,22 +1,16 @@
 require 'pp'
 require 'forwardable'
 
-# header_format = '''< H 11s xH Q 4s 2sH 12s BBH H H'''
-#
-# header_cksum_format = '<BBH H H '
-# maskstring = 'ICHEATED'
-# ACROSSDOWN =
-# BLACKSQUARE = '.'
-#
-# extension_header_format = '< 4s  H H '
-#
+require './puzbuffer'
 
+# Loader for a .puz file.
 class PuzzleLoader
   extend Forwardable
 
   SIGNATURE = 'ACROSS&DOWN'
 
-  def_delegators :@buffer, :unpack, :unpack_multiple, :unpack_zstring, :seek_by
+  def_delegators :@buffer, :unpack, :unpack_multiple, :unpack_zstring,
+                 :seek_by, :seek_to
 
   attr_reader :width, :height, :rows, :num_clues, :clues, :title, :author, :copyright
 
@@ -24,14 +18,9 @@ class PuzzleLoader
     @buffer = PuzzleBuffer.new( read filename )
 
     # Skip past an optional pre-header
+    seek_to( 'ACROSS&DOWN', -2 )
 
-    @buffer.seek_to( 'ACROSS&DOWN', -2 )
-
-    if debug
-      load_irrelevances
-    else
-      @buffer.seek_by( 2+12+2+4+4+4+2+2+12 )
-    end
+    debug ? load_check_values : seek_by( 2 + 12 + 2 + 4 + 4 + 4 + 2 + 2 + 12 )
 
     load_size
     load_answer
@@ -46,31 +35,24 @@ class PuzzleLoader
 
   private
 
-  def load_irrelevances
-    @file_checksum = unpack( '<S' )
-    debug 'File Checksum', @file_checksum
-
-    @sig = unpack_zstring
-    puts "Signature: #{@sig}"
-
-    @cib_checksum = unpack( '<S' )
-    debug 'CIB Checksum', @cib_checksum
-
-    @lowparts  = unpack_multiple( 'C4', 4 )
-    @highparts = unpack_multiple( 'C4', 4 )
-
-    pp @lowparts, @highparts
-
-    @version = unpack( 'Z4', 4 )
-    puts "Version: #{@version}"
-
-    @reserved1c = unpack( '<S' )
-    debug 'Reverved?', @reserved1c
-
+  def load_check_values
+    @file_checksum  = unpack( '<S' )
+    @sig            = unpack_zstring
+    @cib_checksum   = unpack( '<S' )
+    @lowparts       = unpack_multiple( 'C4', 4 )
+    @highparts      = unpack_multiple( 'C4', 4 )
+    @version        = unpack( 'Z4', 4 )
+    @reserved1c     = unpack( '<S' )
     @scrambled_checksum = unpack( '<S' )
-    debug 'Scrambled Checksum', @scrambled_checksum
+    @reserved20     = unpack_multiple( 'C12', 12 )
 
-    @reserved20 = unpack_multiple( 'C12', 12 )
+    debug 'File Checksum', @file_checksum
+    puts "Signature: #{@sig}"
+    debug 'CIB Checksum', @cib_checksum
+    pp @lowparts, @highparts
+    puts "Version: #{@version}"
+    debug 'Reverved?', @reserved1c
+    debug 'Scrambled Checksum', @scrambled_checksum
     pp @reserved20
   end
 
@@ -104,7 +86,7 @@ class PuzzleLoader
     data = ''
 
     open( filename, 'rb' ) do |file|
-      data = file.read()
+      data = file.read
     end
 
     data
@@ -112,59 +94,6 @@ class PuzzleLoader
 
   def debug( name, value )
     printf "%s: %d %04x\n", name, value, value
-  end
-end
-
-# Bufferer for a .puz file which allows for unpacking values.
-class PuzzleBuffer
-  SIZES = { 'S' => 2, 'Q' => 8, 'C' => 1 }
-
-  attr_reader :pos, :data
-
-  def initialize( data = nil )
-    self.data = data
-  end
-
-  def data=( data )
-    @data = data
-    @length = data.size
-    @pos  = 0
-
-    puts "PB - Data: #{data.size} Bytes."
-  end
-
-  def seek( pos )
-    @pos = pos
-  end
-
-  def seek_by( off )
-    @pos += off
-  end
-
-  def seek_to( text, offset )
-    @pos = @data.index( text ) + offset
-  end
-
-  def unpack_multiple( spec, size )
-    start =  @pos
-    @pos  += (size || SIZES[spec[1]])
-    @data[start..@pos].unpack( spec )
-  end
-
-  def unpack_zstring
-    str = @data[@pos..-1].unpack( 'Z' + remaining.to_s )[0]
-    @pos += str.size + 1
-    str
-  end
-
-  def unpack( spec, size = nil )
-    unpack_multiple( spec, size )[0]
-  end
-
-  private
-
-  def remaining
-    @length - @pos
   end
 end
 
@@ -179,13 +108,12 @@ debug 'Height', puz.height
 debug 'Clues ', puz.num_clues
 debug 'Scrambled', puz.scrambled? ? 1 : 0
 
-    puts %{
+puts %(
 Title:  #{puz.title}
 Author: #{puz.author}
 Copy:   #{puz.copyright}
-}
+)
 
 puz.rows.each { |row| puts row }
-
 
 puz.clues.each { |clue| puts clue }
