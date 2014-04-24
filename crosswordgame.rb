@@ -1,6 +1,7 @@
 require 'gosu_enhanced'
 
 require './constants'
+require './resources'
 require './puzloader'
 require './crosswordgrid'
 
@@ -13,14 +14,15 @@ module Crossword
       @grid   = grid
       @width  = BASE_WIDTH + grid.width * CELL_SIZE.width
       @height = BASE_HEIGHT + grid.height * CELL_SIZE.height
+      
+      @down_left    = @width - (MARGIN * 2 + CLUE_COLUMN_WIDTH)
+      @across_left  = @down_left - (MARGIN * 2 + CLUE_COLUMN_WIDTH)
 
       super( @width, @height, false, 100 )
 
       self.caption = 'Crosswords'
 
-      @cell_font    = Gosu::Font.new( self, 'Arial', 14 )
-      @number_font  = Gosu::Font.new( self, 'Arial', 9 )
-      @clue_font    = Gosu::Font.new( self, 'Arial', 14 )
+      @font = ResourceLoader.fonts( self )
     end
 
     def needs_cursor?
@@ -34,6 +36,7 @@ module Crossword
     def draw
       draw_background
       draw_grid
+      draw_clues
     end
     
     def button_down( btn_id )
@@ -65,17 +68,22 @@ module Crossword
         end
       end
     end
+    
+    def draw_clues
+      @font[:header].draw( 'Across', @across_left, MARGIN * 2, 1, 1, 1, WHITE )
+      @font[:header].draw( 'Down', @down_left, MARGIN * 2, 1, 1, 1, WHITE )
+    end
 
     def draw_cell( pos, cell )
       draw_rectangle( pos.offset( 1, 1 ), CELL_SIZE.deflate( 2, 2 ), 1, WHITE )
 
       if cell.number != 0
-        @number_font.draw( cell.number, pos.x + 3, pos.y + 2, 1, 1, 1, BLACK )
+        @font[:number].draw( cell.number, pos.x + 3, pos.y + 2, 1, 1, 1, BLACK )
       end
 
       unless cell.user.empty?
-        pos.move_by!( @cell_font.centred_in( letter, CELL_SIZE ) )
-        @cell_font.draw( cell.user, pos.x, pos.y, 1, 1, 1, BLACK )
+        pos.move_by!( @font[:cell].centred_in( letter, CELL_SIZE ) )
+        @font[:cell].draw( cell.user, pos.x, pos.y, 1, 1, 1, BLACK )
       end
     end
   end
