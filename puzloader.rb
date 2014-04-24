@@ -58,7 +58,7 @@ class PuzzleLoader
 
   def load_size
     @width, @height, @num_clues = unpack_multiple( 'C2<S', 4 )
-    seek_by( 2 )
+    seek_by( 2 )  # Puzzle Type, 1 = Normal, 0x0401 = Diagramless
     @scrambled = unpack( '<S' )
   end
 
