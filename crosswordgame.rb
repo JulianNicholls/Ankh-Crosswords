@@ -1,3 +1,5 @@
+#! /usr/bin/env ruby
+
 require 'gosu_enhanced'
 
 require './constants'
@@ -14,7 +16,7 @@ module Crossword
       @grid   = grid
       @width  = BASE_WIDTH + grid.width * CELL_SIZE.width
       @height = BASE_HEIGHT + grid.height * CELL_SIZE.height
-      
+
       @down_left    = @width - (MARGIN * 2 + CLUE_COLUMN_WIDTH)
       @across_left  = @down_left - (MARGIN * 2 + CLUE_COLUMN_WIDTH)
 
@@ -30,7 +32,6 @@ module Crossword
     end
 
     def update
-
     end
 
     def draw
@@ -38,7 +39,7 @@ module Crossword
       draw_grid
       draw_clues
     end
-    
+
     def button_down( btn_id )
       close if btn_id == Gosu::KbEscape
     end
@@ -68,28 +69,69 @@ module Crossword
         end
       end
     end
-    
+
     def draw_clues
-      @font[:header].draw( 'Across', @across_left, MARGIN * 2, 1, 1, 1, WHITE )
-      @font[:header].draw( 'Down', @down_left, MARGIN * 2, 1, 1, 1, WHITE )
+      across_point = Point.new( @across_left, MARGIN * 2 )
+      down_point   = Point.new( @down_left, MARGIN * 2 )
+
+      draw_clue_list( across_point, 'Across', @grid.across_clues )
+      draw_clue_list( down_point, 'Down', @grid.down_clues )
     end
 
+    def draw_clue_list( pos, header, list )
+      @font[:header].draw( header, pos.x, pos.y, 1, 1, 1, WHITE )
+
+      pos.move_by!( 0, (@font[:header].height * 7) / 6 )
+
+      font = @font[:clue]
+
+      list.each do |clue|
+        text = clue.text
+        size = font.measure( text )
+
+        font.draw( clue.number, pos.x, pos.y, 1, 1, 1, WHITE )
+
+        if size.width > CLUE_COLUMN_WIDTH
+          wrap( text, (size.width / CLUE_COLUMN_WIDTH).ceil ).each do |part|
+            font.draw( part, pos.x + 18, pos.y, 1, 1, 1, WHITE )
+            pos.move_by!( 0, size.height )
+          end
+        else
+          font.draw( text, pos.x + 18, pos.y, 1, 1, 1, WHITE )
+          pos.move_by!( 0, size.height )
+        end
+      end
+    end
+
+    def wrap( text, pieces = 2 )
+      return [text] if pieces == 1
+
+      pos   = text.size / pieces
+      nspace = text.index( ' ', pos )
+      pspace = text.rindex( ' ', pos )
+
+      space = (nspace - pos).abs > (pspace - pos).abs ? pspace : nspace
+
+      [text[0...space]] + wrap( text[space + 1..-1], pieces - 1 )
+    end
+    
     def draw_cell( pos, cell )
       draw_rectangle( pos.offset( 1, 1 ), CELL_SIZE.deflate( 2, 2 ), 1, WHITE )
 
       if cell.number != 0
-        @font[:number].draw( cell.number, pos.x + 3, pos.y + 2, 1, 1, 1, BLACK )
+        @font[:number].draw( cell.number, pos.x + 2, pos.y + 1, 1, 1, 1, BLACK )
       end
 
       unless cell.user.empty?
-        pos.move_by!( @font[:cell].centred_in( letter, CELL_SIZE ) )
-        @font[:cell].draw( cell.user, pos.x, pos.y, 1, 1, 1, BLACK )
+        pos.move_by!( @font[:cell].centred_in( cell.user, CELL_SIZE ) )
+        @font[:cell].draw( cell.user, pos.x, pos.y + 1, 1, 1, 1, BLACK )
       end
     end
   end
 end
 
-puz = PuzzleLoader.new( '2014-4-22-LosAngelesTimes.puz' )
+filename = ARGV[0] || '2014-4-22-LosAngelesTimes.puz'
+puz = PuzzleLoader.new( filename )
 
 puts "Size:  #{puz.width} x #{puz.height}"
 puts "Clues: #{puz.num_clues}"
