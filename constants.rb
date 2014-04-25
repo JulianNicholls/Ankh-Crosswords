@@ -15,7 +15,7 @@ module Crossword
     CELL_SIZE   = Size.new( 28, 28 )
 
     CLUE_COLUMN_WIDTH = 290
-     
+
     WHITE       = Gosu::Color.new( 0xffffffff )
     BLACK       = Gosu::Color.new( 0xff000000 )
   end
