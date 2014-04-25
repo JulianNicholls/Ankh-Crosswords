@@ -1,3 +1,5 @@
+#! /usr/bin/env ruby
+
 require 'pp'
 
 require './puzloader'
@@ -7,7 +9,8 @@ def debug( name, value )
   printf "%-10s: %d %04x\n", name, value, value
 end
 
-puz = PuzzleLoader.new( '2014-4-22-LosAngelesTimes.puz' )
+filename = ARGV[0] || '2014-4-22-LosAngelesTimes.puz'
+puz = PuzzleLoader.new( filename )
 
 debug 'Width', puz.width
 debug 'Height', puz.height
@@ -23,6 +26,13 @@ Copyright:  #{puz.copyright}
 
 puz.clues.each_slice( 2 ) { |clue| puts clue.join ' :: ' }
 
-cgrid = CrosswordGrid.new( puz.rows )
+cgrid = CrosswordGrid.new( puz.rows, puz.clues )
 
-pp cgrid.grid
+cgrid.height.times do |row|
+  puts
+  cgrid.width.times do |col|
+    print cgrid.cell_at( row, col ).letter
+  end
+end
+
+puts
