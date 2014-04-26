@@ -5,10 +5,11 @@ module Crossword
   class ResourceLoader
     def self.fonts( window )
       {
-        cell:       Gosu::Font.new( window, 'Arial', 15 ),
-        number:     Gosu::Font.new( window, 'Arial', 8 ),
-        clue:       Gosu::Font.new( window, 'Arial', 11 ),
-        header:     Gosu::Font.new( window, 'Arial', 22 )
+        cell:     Gosu::Font.new( window, 'Arial', 15 ),
+        number:   Gosu::Font.new( window, 'Arial', 8 ),
+        clue:     Gosu::Font.new( window, 'Arial', 11 ),
+        header:   Gosu::Font.new( window, 'Arial', 20 ),
+        button:   Gosu::Font.new( window, 'Arial', 11 )
       }
     end
 
