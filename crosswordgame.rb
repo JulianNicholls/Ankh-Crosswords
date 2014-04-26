@@ -1,6 +1,7 @@
 #! /usr/bin/env ruby
 
 require 'gosu_enhanced'
+require 'pp'
 
 require './constants'
 require './resources'
@@ -12,7 +13,7 @@ module Crossword
   class Game < Gosu::Window
     include Constants
 
-    def initialize( grid )
+    def initialize( grid, title )
       @grid   = grid
       @width  = BASE_WIDTH + grid.width * CELL_SIZE.width
       @height = BASE_HEIGHT + grid.height * CELL_SIZE.height
@@ -22,9 +23,11 @@ module Crossword
 
       super( @width, @height, false, 100 )
 
-      self.caption = 'Crosswords'
+      self.caption = "Ankh #{title}"
 
       @font = ResourceLoader.fonts( self )
+
+      highlight( :first, :across )
     end
 
     def needs_cursor?
@@ -45,6 +48,16 @@ module Crossword
     end
 
     private
+
+    def highlight( number, direction )
+      if number == :first
+        number = (direction == :across ? @grid.across_clues : @grid.down_clues).first.number
+      end
+      
+      word_cells = @grid.word_cells( number, direction )
+      
+      word_cells.each { |row, col| @grid.cell_at( row, col ).highlighted = true }
+    end
 
     def draw_background
       origin = Point.new( 0, 0 )
@@ -70,53 +83,9 @@ module Crossword
       end
     end
 
-    def draw_clues
-      across_point = Point.new( @across_left, MARGIN * 2 )
-      down_point   = Point.new( @down_left, MARGIN * 2 )
-
-      draw_clue_list( across_point, 'Across', @grid.across_clues )
-      draw_clue_list( down_point, 'Down', @grid.down_clues )
-    end
-
-    def draw_clue_list( pos, header, list )
-      @font[:header].draw( header, pos.x, pos.y, 1, 1, 1, WHITE )
-
-      pos.move_by!( 0, (@font[:header].height * 7) / 6 )
-
-      font = @font[:clue]
-
-      list.each do |clue|
-        text = clue.text
-        size = font.measure( text )
-
-        font.draw( clue.number, pos.x, pos.y, 1, 1, 1, WHITE )
-
-        if size.width > CLUE_COLUMN_WIDTH
-          wrap( text, (size.width / CLUE_COLUMN_WIDTH).ceil ).each do |part|
-            font.draw( part, pos.x + 18, pos.y, 1, 1, 1, WHITE )
-            pos.move_by!( 0, size.height )
-          end
-        else
-          font.draw( text, pos.x + 18, pos.y, 1, 1, 1, WHITE )
-          pos.move_by!( 0, size.height )
-        end
-      end
-    end
-
-    def wrap( text, pieces = 2 )
-      return [text] if pieces == 1
-
-      pos   = text.size / pieces
-      nspace = text.index( ' ', pos )
-      pspace = text.rindex( ' ', pos )
-
-      space = (nspace - pos).abs > (pspace - pos).abs ? pspace : nspace
-
-      [text[0...space]] + wrap( text[space + 1..-1], pieces - 1 )
-    end
-    
     def draw_cell( pos, cell )
-      draw_rectangle( pos.offset( 1, 1 ), CELL_SIZE.deflate( 2, 2 ), 1, WHITE )
+      bkgr = cell.highlighted ? HIGHLIGHT : WHITE
+      draw_rectangle( pos.offset( 1, 1 ), CELL_SIZE.deflate( 2, 2 ), 1, bkgr )
 
       if cell.number != 0
         @font[:number].draw( cell.number, pos.x + 2, pos.y + 1, 1, 1, 1, BLACK )
@@ -126,6 +95,67 @@ module Crossword
         pos.move_by!( @font[:cell].centred_in( cell.user, CELL_SIZE ) )
         @font[:cell].draw( cell.user, pos.x, pos.y + 1, 1, 1, 1, BLACK )
       end
+    end
+
+    def draw_clues
+      across_point = Point.new( @across_left, MARGIN * 2 )
+      down_point   = Point.new( @down_left, MARGIN * 2 )
+
+      draw_clue_header( across_point, 'Across' )
+      draw_clue_header( down_point, 'Down' )
+
+      draw_clue_list( across_point, @grid.across_clues )
+      draw_clue_list( down_point, @grid.down_clues )
+    end
+
+    def draw_clue_header( pos, header )
+      @font[:header].draw( header, pos.x, pos.y, 1, 1, 1, WHITE )
+
+      pos.move_by!( 0, @font[:header].height )
+    end
+
+    def draw_clue_list( pos, list )
+      font = @font[:clue]
+
+      list.each do |clue|
+        size  = font.measure( clue.text )
+        tlc   = pos
+
+        font.draw( clue.number, pos.x, pos.y, 1, 1, 1, WHITE )
+
+        if size.width > CLUE_COLUMN_WIDTH
+          draw_wrapped( pos, clue.text, (size.width / CLUE_COLUMN_WIDTH).ceil )
+        else
+          draw_simple( pos, clue.text )
+        end
+
+        clue.region = Region.new( tlc, Size.new( CLUE_COLUMN_WIDTH, pos.y - tlc.y ) )
+      end
+    end
+
+    def draw_wrapped( pos, text, parts )
+      wrap( text, parts ).each do |part|
+        draw_simple( pos, part )
+      end
+    end
+
+    def draw_simple( pos, text )
+      font = @font[:clue]
+
+      font.draw( text, pos.x + 18, pos.y, 1, 1, 1, WHITE )
+      pos.move_by!( 0, font.height )
+    end
+
+    def wrap( text, pieces = 2 )
+      return [text] if pieces == 1
+
+      pos    = text.size / pieces
+      nspace = text.index( ' ', pos )
+      pspace = text.rindex( ' ', pos )
+
+      space = (nspace - pos).abs > (pspace - pos).abs ? pspace : nspace
+
+      [text[0...space]] + wrap( text[space + 1..-1], pieces - 1 )
     end
   end
 end
@@ -145,4 +175,4 @@ Copyright:  #{puz.copyright}
 
 cgrid = CrosswordGrid.new( puz.rows, puz.clues )
 
-Crossword::Game.new( cgrid ).show
+Crossword::Game.new( cgrid, puz.title ).show
