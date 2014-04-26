@@ -23,32 +23,64 @@ class CrosswordGrid
     @clues.select { |c| c.direction == :down }
   end
 
+  def each_with_position
+    @height.times do |row|
+      @width.times do |col|
+        yield cell_at( row, col), row, col
+      end
+    end
+  end
+  
+  def word_cells( number, direction )
+    _, row, col = cell_number( number )
+    word = [[row, col]]
+    
+    loop do
+      row, col = next_cell( row, col, direction )
+      break if row.nil?
+      word << [row, col]
+    end
+    
+    word
+  end
+  
   private
 
+  def cell_number( num )
+    each_with_position { |cell, row, col| return [cell, row, col] if cell.number == num }
+  end
+
+  def next_cell( row, col, direction )
+    row += 1 if direction == :down
+    col += 1 if direction == :across
+    
+    return [nil, nil] if row == @height || col == @width || cell_at( row, col ).blank?
+    
+    [row, col]
+  end
+  
   def build_grid( rows )
     @grid = []
 
     rows.each { |r| r.each_char { |c| @grid << Cell.new( c ) } }
   end
 
-  Clue = Struct.new( :direction, :number, :text )
-  
+  Clue = Struct.new( :direction, :number, :text, :region )
+
   def add_numbers_and_clues( clues )
     number = 1
 
-    @height.times do |row|
-      @width.times do |col|
-        next if cell_at( row, col ).blank?
+    each_with_position do |cell, row, col|
+      next if cell.blank?
 
-        nan, ndn = needs_across_number?( row, col ), needs_down_number?( row, col )
+      nan, ndn = needs_across_number?( row, col ), needs_down_number?( row, col )
 
-        @clues << Clue.new( :across, number, clues.next ) if nan
-        @clues << Clue.new( :down,   number, clues.next ) if ndn
+      @clues << Clue.new( :across, number, clues.next ) if nan
+      @clues << Clue.new( :down,   number, clues.next ) if ndn
 
-        if nan || ndn
-          cell_at( row, col ).number = number
-          number += 1
-        end
+      if nan || ndn
+        cell.number = number
+        number += 1
       end
     end
   end
@@ -63,16 +95,17 @@ class CrosswordGrid
     row < @height - 1 && !cell_at( row + 1, col ).blank?
   end
 
-  # Represent one cell in the crossword with its letter, user entry, and
-  # possible number and clue.
+  # Represent one cell in the crossword with its solution letter, user entry,
+  # and possible number.
   class Cell
     attr_reader :letter
-    attr_accessor :user, :number
+    attr_accessor :user, :number, :highlighted
 
     def initialize( letter )
       @letter = letter
       @user   = ''
       @number = 0
+      @highlighted = false
     end
 
     def blank?
