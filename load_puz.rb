@@ -10,12 +10,13 @@ def debug( name, value )
 end
 
 filename = ARGV[0] || '2014-4-22-LosAngelesTimes.puz'
-puz = PuzzleLoader.new( filename )
+puz = PuzzleLoader.new( filename, :debug )
 
-debug 'Width', puz.width
-debug 'Height', puz.height
-debug 'Clues', puz.num_clues
+debug 'Width    ', puz.width
+debug 'Height   ', puz.height
+debug 'Clues    ', puz.num_clues
 debug 'Scrambled', puz.scrambled? ? 1 : 0
+debug 'Valid    ', puz.valid? ? 1 : 0
 
 puts %(
 Title:      #{puz.title}
