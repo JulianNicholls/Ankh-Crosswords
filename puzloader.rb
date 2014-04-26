@@ -22,6 +22,8 @@ class PuzzleLoader
 
     debug ? load_check_values : seek_by( 2 + 12 + 2 + 4 + 4 + 4 + 2 + 2 + 12 )
 
+    show_check_values if debug
+
     load_size
     load_answer
     skip_solution
@@ -33,9 +35,19 @@ class PuzzleLoader
     @scrambled != 0
   end
 
+  def valid?
+    load_check_values if @file_checkum.nil?
+    cksum = @buffer.checksum( 0x2C, 8, 0 )
+    return false if cksum != @cib_checksum
+
+    true
+  end
+
   private
 
   def load_check_values
+    seek_to( 'ACROSS&DOWN', -2 )
+
     @file_checksum  = unpack( '<S' )
     @sig            = unpack_zstring
     @cib_checksum   = unpack( '<S' )
@@ -45,7 +57,9 @@ class PuzzleLoader
     @reserved1c     = unpack( '<S' )
     @scrambled_checksum = unpack( '<S' )
     @reserved20     = unpack_multiple( 'C12', 12 )
+  end
 
+  def show_check_values
     debug 'File Checksum', @file_checksum
     puts "Signature: #{@sig}"
     debug 'CIB Checksum', @cib_checksum

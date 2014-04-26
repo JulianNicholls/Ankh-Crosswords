@@ -13,22 +13,28 @@ class PuzzleBuffer
     @data   = data
     @length = data.size
     @pos    = 0
+  end
 
-#    puts "PB - Data: #{data.size} Bytes."
+  def checksum( start, length, cksum )
+    seek( start )
+
+    length.times do
+      bitset = (cksum & 0x0001) != 0
+
+      cksum >>= 1
+      cksum |= 0x8000 if bitset
+      cksum += unpack( 'C', 1 )
+    end
+
+    cksum
   end
 
   def seek_by( off )
     @pos += off
   end
 
-  def seek_to( text, offset )
+  def seek_to( text, offset = 0 )
     @pos = @data.index( text ) + offset
-  end
-
-  def unpack_multiple( spec, size )
-    start =  @pos
-    @pos  += (size || SIZES[spec[1]])
-    @data[start..@pos].unpack( spec )
   end
 
   def unpack_zstring
@@ -39,6 +45,12 @@ class PuzzleBuffer
 
   def unpack( spec, size = nil )
     unpack_multiple( spec, size )[0]
+  end
+
+  def unpack_multiple( spec, size )
+    start = @pos
+    @pos  += (size || SIZES[spec[1]])
+    @data[start..@pos].unpack( spec )
   end
 
   private
