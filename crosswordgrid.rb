@@ -30,35 +30,60 @@ class CrosswordGrid
       end
     end
   end
-  
+
   def word_cells( number, direction )
     _, row, col = cell_number( number )
     word = [[row, col]]
-    
+
     loop do
       row, col = next_cell( row, col, direction )
       break if row.nil?
       word << [row, col]
     end
-    
+
     word
   end
-  
+
+  def first_clue( direction )
+    list = clue_list( direction )
+    list.first.number
+  end
+
+  def next_clue( start, direction )
+    list = clue_list( direction )
+
+    list.each_with_index do |clue, idx|
+      return list[[idx + 1, list.size - 1].min].number if clue.number == start
+    end
+  end
+
   private
 
+  def clue_list( direction )
+    direction == :across ? across_clues : down_clues
+  end
+
   def cell_number( num )
-    each_with_position { |cell, row, col| return [cell, row, col] if cell.number == num }
+    each_with_position do |cell, row, col|
+      return [cell, row, col] if cell.number == num
+    end
+
+    fail "Didn't find cell with number #{num}"
   end
 
   def next_cell( row, col, direction )
+    fail "Direction: #{direction}" unless [:across, :down].include? direction
+
     row += 1 if direction == :down
     col += 1 if direction == :across
-    
-    return [nil, nil] if row == @height || col == @width || cell_at( row, col ).blank?
-    
-    [row, col]
+
+    if row == @height || col == @width || cell_at( row, col ).blank?
+      [nil, nil]
+    else
+      [row, col]
+    end
   end
-  
+
   def build_grid( rows )
     @grid = []
 
