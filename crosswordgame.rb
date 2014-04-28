@@ -2,6 +2,7 @@
 
 require 'gosu_enhanced'
 require 'pp'
+require 'pry'
 
 require './constants'
 require './resources'
@@ -12,6 +13,12 @@ module Crossword
   # Crossword!
   class Game < Gosu::Window
     include Constants
+
+    KEY_FUNCS = {
+      Gosu::KbEscape  =>  -> { close },
+      Gosu::KbTab     =>  -> { highlight( :next ) },
+      Gosu::KbSpace   =>  -> { highlight( :swap ) }
+    }
 
     def initialize( grid, title )
       @grid   = grid
@@ -27,7 +34,8 @@ module Crossword
 
       @font = ResourceLoader.fonts( self )
 
-      highlight( :first, :across )
+      @highlighted, @word_cells = [], []
+      highlight( :first, :down )
     end
 
     def needs_cursor?
@@ -44,19 +52,23 @@ module Crossword
     end
 
     def button_down( btn_id )
-      close if btn_id == Gosu::KbEscape
+      instance_exec( &KEY_FUNCS[btn_id] ) if KEY_FUNCS.key? btn_id
     end
 
     private
 
-    def highlight( number, direction )
-      if number == :first
-        number = (direction == :across ? @grid.across_clues : @grid.down_clues).first.number
-      end
-      
-      word_cells = @grid.word_cells( number, direction )
-      
-      word_cells.each { |row, col| @grid.cell_at( row, col ).highlighted = true }
+    def highlight( number, direction = nil )
+      direction ||= @highlighted[1]
+      @word_cells.each { |row, col| @grid.cell_at( row, col ).highlighted = false }
+
+      number = @grid.first_clue( direction )    if number == :first
+      number = @grid.next_clue( @highlighted[0], direction ) if number == :next
+
+      @word_cells = @grid.word_cells( number, direction )
+
+      @word_cells.each { |row, col| @grid.cell_at( row, col ).highlighted = true }
+
+      @highlighted = [number, direction]
     end
 
     def draw_background
@@ -70,16 +82,10 @@ module Crossword
     end
 
     def draw_grid
-      @grid.height.times do |row|
-        pos = GRID_ORIGIN.offset( 0, row * CELL_SIZE.height )
-
-        @grid.width.times do |col|
-          draw_rectangle( pos, CELL_SIZE, 1, BLACK )
-          cell = @grid.cell_at( row, col )
-          draw_cell( pos.dup, cell ) unless cell.blank?
-
-          pos.move_by!( CELL_SIZE.width, 0 )
-        end
+      @grid.each_with_position do |cell, row, col|
+        pos = GRID_ORIGIN.offset( col * CELL_SIZE.width, row * CELL_SIZE.height )
+        draw_rectangle( pos, CELL_SIZE, 1, BLACK )
+        draw_cell( pos, cell ) unless cell.blank?
       end
     end
 
@@ -92,8 +98,8 @@ module Crossword
       end
 
       unless cell.user.empty?
-        pos.move_by!( @font[:cell].centred_in( cell.user, CELL_SIZE ) )
-        @font[:cell].draw( cell.user, pos.x, pos.y + 1, 1, 1, 1, BLACK )
+        lpos = pos.offset( @font[:cell].centred_in( cell.user, CELL_SIZE ) )
+        @font[:cell].draw( cell.user, lpos.x, lpos.y + 1, 1, 1, 1, BLACK )
       end
     end
 
