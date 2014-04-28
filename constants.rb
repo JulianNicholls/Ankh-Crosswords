@@ -19,5 +19,6 @@ module Crossword
     WHITE       = Gosu::Color.new( 0xffffffff )
     BLACK       = Gosu::Color.new( 0xff000000 )
     HIGHLIGHT   = Gosu::Color.new( 0xffffffd0 )   # Liquid yellow
+    CURRENT     = Gosu::Color.new( 0xffffff80 )   # Less Liquid yellow
   end
 end
