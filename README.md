@@ -7,9 +7,9 @@ the command line to load that instead.
 
 ## Coming Events!
 
-- [X] Highlight an across word
-- [X] Highlight a down word
-- [X] Highlight the next word
+- [x] Highlight an across word
+- [x] Highlight a down word
+- [x] Highlight the next word
 - [ ] Swap between Across and Down Highlight
 - [ ] Allow for letter entry
 - [ ] Highlight the next word after entering
