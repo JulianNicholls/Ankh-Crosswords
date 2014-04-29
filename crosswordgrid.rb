@@ -52,9 +52,9 @@ class CrosswordGrid
   def next_clue( start, direction )
     list = clue_list( direction )
 
-    list.each_with_index do |clue, idx|
-      return list[[idx + 1, list.size - 1].min].number if clue.number == start
-    end
+    idx = list.index { |clue| clue.number == start }
+
+    list[[idx + 1, list.size - 1].min].number
   end
 
   private
@@ -72,7 +72,7 @@ class CrosswordGrid
   end
 
   def next_cell( row, col, direction )
-    fail "Direction: #{direction}" unless [:across, :down].include? direction
+    fail "Direction: '#{direction}'" unless [:across, :down].include? direction
 
     row += 1 if direction == :down
     col += 1 if direction == :across
