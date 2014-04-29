@@ -2,7 +2,6 @@
 
 require 'gosu_enhanced'
 require 'pp'
-require 'pry'
 
 require './constants'
 require './resources'
@@ -16,8 +15,10 @@ module Crossword
 
     KEY_FUNCS = {
       Gosu::KbEscape  =>  -> { close },
-      Gosu::KbTab     =>  -> { highlight( :next ) },
-      Gosu::KbSpace   =>  -> { highlight( :swap ) }
+      Gosu::KbTab     =>  -> { highlight_word( :next ) },
+      Gosu::KbSpace   =>  -> { highlight_word( :swap ) },
+      
+      Gosu::KbUp      =>  -> { }
     }
 
     def initialize( grid, title )
@@ -34,8 +35,8 @@ module Crossword
 
       @font = ResourceLoader.fonts( self )
 
-      @highlighted, @word_cells = [], []
-      highlight( :first, :down )
+      @highlighted_word, @word_cells. @current_cell = [], [], []
+      highlight_word( :first, :across )
     end
 
     def needs_cursor?
@@ -57,18 +58,24 @@ module Crossword
 
     private
 
-    def highlight( number, direction = nil )
+    def highlight_word( number, direction = nil )
       direction ||= @highlighted[1]
-      @word_cells.each { |row, col| @grid.cell_at( row, col ).highlighted = false }
+      highlight_word_cells( false )
 
       number = @grid.first_clue( direction )    if number == :first
       number = @grid.next_clue( @highlighted[0], direction ) if number == :next
 
       @word_cells = @grid.word_cells( number, direction )
 
-      @word_cells.each { |row, col| @grid.cell_at( row, col ).highlighted = true }
+      highlight_word_cells
 
       @highlighted = [number, direction]
+    end
+
+    def highlight_word_cells( highlight = true )
+      @word_cells.each do |row, col|
+        @grid.cell_at( row, col ).highlighted = highlight
+      end
     end
 
     def draw_background
@@ -121,22 +128,23 @@ module Crossword
     end
 
     def draw_clue_list( pos, list )
-      font = @font[:clue]
+      list.each { |clue| draw_clue( pos, clue ) }
+    end
 
-      list.each do |clue|
-        size  = font.measure( clue.text )
-        tlc   = pos
+    def draw_clue( pos, clue )
+      font  = @font[:clue]
+      size  = font.measure( clue.text )
+      tlc   = pos
 
-        font.draw( clue.number, pos.x, pos.y, 1, 1, 1, WHITE )
+      font.draw( clue.number, pos.x, pos.y, 1, 1, 1, WHITE )
 
-        if size.width > CLUE_COLUMN_WIDTH
-          draw_wrapped( pos, clue.text, (size.width / CLUE_COLUMN_WIDTH).ceil )
-        else
-          draw_simple( pos, clue.text )
-        end
-
-        clue.region = Region.new( tlc, Size.new( CLUE_COLUMN_WIDTH, pos.y - tlc.y ) )
+      if size.width > CLUE_COLUMN_WIDTH
+        draw_wrapped( pos, clue.text, (size.width / CLUE_COLUMN_WIDTH).ceil )
+      else
+        draw_simple( pos, clue.text )
       end
+
+      clue.region = Region.new( tlc, Size.new( CLUE_COLUMN_WIDTH, pos.y - tlc.y ) )
     end
 
     def draw_wrapped( pos, text, parts )
