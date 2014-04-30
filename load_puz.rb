@@ -1,9 +1,9 @@
-#! /usr/bin/env ruby
+#! /usr/bin/env ruby -I.
 
 require 'pp'
 
-require './puzloader'
-require './crosswordgrid'
+require 'puzloader'
+require 'crosswordgrid'
 
 def debug( name, value )
   printf "%-10s: %d %04x\n", name, value, value
@@ -27,7 +27,7 @@ Copyright:  #{puz.copyright}
 
 puz.clues.each_slice( 2 ) { |clue| puts clue.join ' :: ' }
 
-cgrid = CrosswordGrid.new( puz.rows, puz.clues )
+cgrid = Crossword::Grid.new( puz.rows, puz.clues )
 
 cgrid.height.times do |row|
   puts
