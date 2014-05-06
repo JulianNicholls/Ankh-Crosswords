@@ -1,4 +1,5 @@
 require 'constants'
+require 'clue'
 
 module Crossword
   # Represent a whole crossword grid
@@ -29,7 +30,7 @@ module Crossword
     def each_with_position
       @height.times do |row|
         @width.times do |col|
-          yield cell_at( row, col), row, col
+          yield cell_at( row, col ), row, col
         end
       end
     end
@@ -55,8 +56,10 @@ module Crossword
     def next_clue( start, direction )
       list = clue_list( direction )
 
-      idx = list.index { |clue| clue.number == start }
+      idx = list.index { |clue| clue.number >= start }
 
+      raise "idx == nil, start: #{start}, dir: #{direction}" if idx.nil?
+      
       list[[idx + 1, list.size - 1].min].number
     end
 
