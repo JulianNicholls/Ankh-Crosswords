@@ -62,7 +62,7 @@ module Crossword
       direction ||= @highlighted[1]
       highlight_word_cells( false )
 
-      number = @grid.first_clue( direction )    if number == :first
+      number = @grid.first_clue( direction ) if number == :first
       number = @grid.next_clue( @highlighted[0], direction ) if number == :next
       
       if number == :swap
@@ -153,4 +153,4 @@ Copyright:  #{puz.copyright}
 
 cgrid = Crossword::Grid.new( puz.rows, puz.clues )
 
-Crossword::Game.new( cgrid, puz.title ).show
+Crossword::Game.new( cgrid, "#{puz.title} - #{puz.author}" ).show
