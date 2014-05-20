@@ -4,13 +4,13 @@ module Crossword
   class Clue
     include Constants
 
-    attr_reader   :direction, :number, :text, :row, :col, :region
+    attr_reader :direction, :number, :text, :point, :region
 
-    def initialize( direction, number, text, row, column, region = nil )
+    def initialize( direction, number, text, point, region = nil )
       @direction  = direction
       @number     = number
       @text       = text
-      @row, @col  = row, column
+      @point      = point
       @region     = region
     end
 

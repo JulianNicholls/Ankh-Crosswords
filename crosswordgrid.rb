@@ -15,8 +15,12 @@ module Crossword
       add_numbers_and_clues( clues.to_enum )
     end
 
-    def cell_at( row, col )
-      @grid[row * @width + col]
+    def cell_at( row, col = nil )
+      if row.respond_to? :row
+        @grid[row.row * @width + row.col]
+      else
+        @grid[row * @width + col]
+      end
     end
 
     def across_clues
@@ -30,19 +34,19 @@ module Crossword
     def each_with_position
       @height.times do |row|
         @width.times do |col|
-          yield cell_at( row, col ), row, col
+          yield cell_at( row, col ), GridPoint.new( row, col )
         end
       end
     end
 
     def word_cells( number, direction )
-      _, row, col = cell_number( number, direction )
-      word = [[row, col]]
+      _, gpoint = cell_number( number, direction )
+      word = [gpoint]
 
       loop do
-        row, col = next_cell( row, col, direction )
-        break if row.nil?
-        word << [row, col]
+        gpoint = next_cell( gpoint, direction )
+        break if gpoint.nil?
+        word << gpoint
       end
 
       word
@@ -58,8 +62,8 @@ module Crossword
 
       idx = list.index { |clue| clue.number >= start }
 
-      raise "idx == nil, start: #{start}, dir: #{direction}" if idx.nil?
-      
+      fail "idx == nil, start: #{start}, dir: #{direction}" if idx.nil?
+
       list[[idx + 1, list.size - 1].min].number
     end
 
@@ -74,43 +78,41 @@ module Crossword
     end
 
     def cell_number( num, direction )
-      clue  = clue_list( direction ).find { |clue| clue.number == num }
-      
-      return [cell_at( clue.row, clue.col ), clue.row, clue.col] unless clue.nil?
+      clue  = clue_list( direction ).find { |c| c.number == num }
 
-      clue  = other_list( direction ).find { |clue| clue.number == num }
+      return [cell_at( clue.point ), clue.point] unless clue.nil?
 
-      row, col = clue.row, clue.col
-      
+      clue  = other_list( direction ).find { |c| c.number == num }
+
+      gpoint = clue.point
+
       loop do
-        nrow, ncol = prev_cell( row, col, direction )
+        npoint = prev_cell( gpoint, direction )
         break if nrow.nil?
-        row, col = nrow, ncol
-      end 
-      
-      return [cell_at( row, col ), row, col]      
+        gpoint = npoint
+      end
+
+      [cell_at( gpoint ), gpoint]
     end
 
-    def next_cell( row, col, direction )
-      move_cell( row, col, direction, 1 )
+    def next_cell( gpoint, direction )
+      move_cell( gpoint, direction, 1 )
     end
 
-    def prev_cell( row, col, direction )
-      move_cell( row, col, direction, -1 )
+    def prev_cell( gpoint, direction )
+      move_cell( gpoint, direction, -1 )
     end
-    
-    def move_cell( row, col, direction, increment )
+
+    def move_cell( gpoint, direction, increment )
       fail "Direction: '#{direction}'" unless [:across, :down].include? direction
 
-      row += increment if direction == :down
-      col += increment if direction == :across
+      gpoint.col += increment if direction == :across
+      gpoint.row += increment if direction == :down
 
-      if row < 0 || col < 0 || 
-         row == @height || col == @width || 
-         cell_at( row, col ).blank?
-        [nil, nil]
+      if gpoint.out_of_range?( @height, @width ) || cell_at( gpoint ).blank?
+        nil
       else
-        [row, col]
+        gpoint
       end
     end
 
@@ -123,13 +125,13 @@ module Crossword
     def add_numbers_and_clues( clues )
       number = 1
 
-      each_with_position do |cell, row, col|
+      each_with_position do |cell, gpoint|
         next if cell.blank?
 
-        nan, ndn = needs_across_number?( row, col ), needs_down_number?( row, col )
+        nan, ndn = needs_across_number?( gpoint ), needs_down_number?( gpoint )
 
-        @clues << Clue.new( :across, number, clues.next, row, col ) if nan
-        @clues << Clue.new( :down,   number, clues.next, row, col ) if ndn
+        @clues << Clue.new( :across, number, clues.next, gpoint ) if nan
+        @clues << Clue.new( :down,   number, clues.next, gpoint ) if ndn
 
         if nan || ndn
           cell.number = number
@@ -138,14 +140,27 @@ module Crossword
       end
     end
 
-    def needs_across_number?( row, col )
-      (col == 0 || cell_at( row, col - 1).blank?) &&
-      col < @width - 1 && !cell_at( row, col + 1 ).blank?
+    def needs_across_number?( gpoint )
+      (gpoint.col == 0 || cell_at( gpoint.row, gpoint.col - 1).blank?) &&
+      gpoint.col < @width - 1 && !cell_at( gpoint.row, gpoint.col + 1 ).blank?
     end
 
-    def needs_down_number?( row, col )
-      (row == 0 || cell_at( row - 1, col ).blank?) &&
-      row < @height - 1 && !cell_at( row + 1, col ).blank?
+    def needs_down_number?( gpoint )
+      (gpoint.row == 0 || cell_at( gpoint.row - 1, gpoint.col ).blank?) &&
+      gpoint.row < @height - 1 && !cell_at( gpoint.row + 1, gpoint.col ).blank?
+    end
+  end
+
+  class GridPoint
+    attr_accessor :row, :col
+
+    def initialize( row, col )
+      @row, @col = row, col
+    end
+
+    def out_of_range?( height, width )
+      row < 0 || col < 0 ||
+      row >= height || col >= width
     end
   end
 
@@ -153,76 +168,17 @@ module Crossword
   # and possible number.
   class Cell
     attr_reader :letter
-    attr_accessor :user, :number, :highlighted
+    attr_accessor :user, :number, :highlight
 
     def initialize( letter )
       @letter = letter
       @user   = ''
       @number = 0
-      @highlighted = false
+      @highlight = :none
     end
 
     def blank?
       @letter == '.'
-    end
-  end
-
-  # Have a clue.
-  class Clue
-    include Constants
-
-    attr_reader   :direction, :number, :text, :row, :col, :region
-
-    def initialize( direction, number, text, row, column, region = nil )
-      @direction  = direction
-      @number     = number
-      @text       = text
-      @row, @col  = row, column
-      @region     = region
-    end
-
-    def draw( game, pos, max_width )
-      font = game.font[:clue]
-
-      size  = font.measure( text )
-      tlc   = pos
-
-      font.draw( number, pos.x, pos.y, 1, 1, 1, WHITE )
-
-      if size.width > max_width
-        draw_wrapped( game, pos, text, (size.width / max_width).ceil )
-      else
-        draw_simple( game, pos, text )
-      end
-
-      @region = Region.new( tlc, Size.new( CLUE_COLUMN_WIDTH, pos.y - tlc.y ) )
-    end
-
-    private
-
-    def draw_wrapped( game, pos, text, parts )
-      wrap( text, parts ).each do |part|
-        draw_simple( game, pos, part )
-      end
-    end
-
-    def draw_simple( game, pos, text )
-      font = game.font[:clue]
-
-      font.draw( text, pos.x + 18, pos.y, 1, 1, 1, WHITE )
-      pos.move_by!( 0, font.height )
-    end
-
-    def wrap( text, pieces = 2 )
-      return [text] if pieces == 1
-
-      pos    = text.size / pieces
-      nspace = text.index( ' ', pos )
-      pspace = text.rindex( ' ', pos )
-
-      space = (nspace - pos).abs > (pspace - pos).abs ? pspace : nspace
-
-      [text[0...space]] + wrap( text[space + 1..-1], pieces - 1 )
     end
   end
 end

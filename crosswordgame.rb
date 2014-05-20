@@ -17,8 +17,9 @@ module Crossword
 
     KEY_FUNCS = {
       Gosu::KbEscape  =>  -> { close },
-      Gosu::KbTab     =>  -> { highlight_word( :next ) },
-      Gosu::KbSpace   =>  -> { highlight_word( :swap ) }
+      Gosu::KbSpace   =>  -> { highlight_word( :swap ) },
+
+      Gosu::MsLeft    =>  -> { @position = Point.new( mouse_x, mouse_y ) }
     }
 
     def initialize( grid, title )
@@ -35,8 +36,7 @@ module Crossword
 
       @font = ResourceLoader.fonts( self )
 
-      @highlighted_word, @word_cells, @current_cell = [], [], []
-      highlight_word( :first, :across )
+      initial_highlight
     end
 
     def needs_cursor?
@@ -44,6 +44,8 @@ module Crossword
     end
 
     def update
+      highlight_word
+      highlight_current
     end
 
     def draw
@@ -58,29 +60,23 @@ module Crossword
 
     private
 
-    def highlight_word( number, direction = nil )
-      direction ||= @highlighted[1]
-      highlight_word_cells( false )
-
-      number = @grid.first_clue( direction ) if number == :first
-      number = @grid.next_clue( @highlighted[0], direction ) if number == :next
-      
-      if number == :swap
-        direction = direction == :across ? :down : :across
-        number    = @highlighted[0]
-      end 
-
-      @word_cells = @grid.word_cells( number, direction )
-
-      highlight_word_cells
-
-      @highlighted = [number, direction]
+    def initial_highlight
+      number    = @grid.first_clue( :across )
+      @cur_word = @grid.word_cells( number, :across )
+      @current  = @cur_word[0]
     end
 
-    def highlight_word_cells( highlight = true )
-      @word_cells.each do |row, col|
-        @grid.cell_at( row, col ).highlighted = highlight
+    def highlight_word
+      @cur_word.each { |gpoint| @grid.cell_at( gpoint ).highlight = :word }
+    end
+
+    def highlight_current
+      unless @prev.nil?
+        @grid.cell_at( @prev ).highlight = :none
+        @prev = nil
       end
+
+      @grid.cell_at( @current ).highlight = :current
     end
 
     def draw_background
@@ -94,15 +90,15 @@ module Crossword
     end
 
     def draw_grid
-      @grid.each_with_position do |cell, row, col|
-        pos = GRID_ORIGIN.offset( col * CELL_SIZE.width, row * CELL_SIZE.height )
+      @grid.each_with_position do |cell, gpoint|
+        pos = GRID_ORIGIN.offset( gpoint.col * CELL_SIZE.width, gpoint.row * CELL_SIZE.height )
         draw_rectangle( pos, CELL_SIZE, 1, BLACK )
         draw_cell( pos, cell ) unless cell.blank?
       end
     end
 
     def draw_cell( pos, cell )
-      bkgr = cell.highlighted ? HIGHLIGHT : WHITE
+      bkgr = BK_COLOURS[cell.highlight]
       draw_rectangle( pos.offset( 1, 1 ), CELL_SIZE.deflate( 2, 2 ), 1, bkgr )
 
       if cell.number != 0
