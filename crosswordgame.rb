@@ -16,7 +16,7 @@ module Crossword
 
     KEY_FUNCS = {
       Gosu::KbEscape  =>  -> { close },
-      Gosu::KbSpace   =>  -> { highlight_word( :swap ) },
+      Gosu::KbSpace   =>  -> { @position = @current[0].to_point },
 
       Gosu::MsLeft    =>  -> { @position = Point.new( mouse_x, mouse_y ) }
     }
@@ -51,12 +51,20 @@ module Crossword
 
     def update_current
       @cur_word.each { |gpoint| @grid.cell_at( gpoint ).highlight = :none }
-      @grid.cell_at( @current ).highlight = :none
+      @grid.cell_at( @current[0] ).highlight = :none
 
       new_cur  = GridPoint.from_point( @position )
-      new_word = @grid.word_from_pos( new_cur, :across )
+      new_word = @grid.word_from_pos( new_cur, @current[1] )
 
-      @current, @cur_word = new_cur, new_word unless new_word.empty?
+      unless new_word.empty?
+        if new_cur == @current[0]
+          @current[1] = @current[1] == :across ? :down : :across
+          new_word = @grid.word_from_pos( new_cur, @current[1] )
+        end
+
+        @current[0], @cur_word = new_cur, new_word
+      end
+
       @position = nil
     end
 
@@ -75,7 +83,7 @@ module Crossword
     def initial_highlight
       number    = @grid.first_clue( :across )
       @cur_word = @grid.word_cells( number, :across )
-      @current  = @cur_word[0]
+      @current  = [@cur_word[0], :across]
     end
 
     def highlight_word
@@ -83,12 +91,7 @@ module Crossword
     end
 
     def highlight_current
-      unless @prev.nil?
-        @grid.cell_at( @prev ).highlight = :none
-        @prev = nil
-      end
-
-      @grid.cell_at( @current ).highlight = :current
+      @grid.cell_at( @current[0] ).highlight = :current
     end
 
     def draw_background
