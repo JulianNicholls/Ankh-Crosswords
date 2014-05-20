@@ -63,6 +63,7 @@ module Crossword
     def initial_highlight
       number    = @grid.first_clue( :across )
       @cur_word = @grid.word_cells( number, :across )
+      pp @cur_word
       @current  = @cur_word[0]
     end
 

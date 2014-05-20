@@ -88,7 +88,7 @@ module Crossword
 
       loop do
         npoint = prev_cell( gpoint, direction )
-        break if nrow.nil?
+        break if npoint.nil?
         gpoint = npoint
       end
 
@@ -96,11 +96,11 @@ module Crossword
     end
 
     def next_cell( gpoint, direction )
-      move_cell( gpoint, direction, 1 )
+      move_cell( gpoint.dup, direction, 1 )
     end
 
     def prev_cell( gpoint, direction )
-      move_cell( gpoint, direction, -1 )
+      move_cell( gpoint.dup, direction, -1 )
     end
 
     def move_cell( gpoint, direction, increment )
