@@ -1,23 +1,32 @@
-module WordThing
-  class WordGrid
-    # Grid Point
-    class GPoint < Struct.new( :col, :row )
-      include Constants
+require 'constants'
 
-      def offset( x, y )
-        GPoint.new( col + x, row + y )
-      end
+module Crossword
+  # Represent a cell position in the grid
+  class GridPoint < Struct.new( :row, :col )
+    include Constants
 
-      def to_point
-        GRID_ORIGIN.offset( col * TILE_SIZE, row * TILE_SIZE )
-      end
+    def self.from_point( pos )
+      new(
+        ((pos.y - GRID_ORIGIN.y) / CELL_SIZE.height).floor,
+        ((pos.x - GRID_ORIGIN.x) / CELL_SIZE.width).floor
+      )
+    end
 
-      def self.from_point( pos )
-        GPoint.new(
-          ((pos.x - GRID_ORIGIN.x) / TILE_SIZE).floor,
-          ((pos.y - GRID_ORIGIN.y) / TILE_SIZE).floor
-        )
+    def out_of_range?( height, width )
+      row < 0 || col < 0 ||
+      row >= height || col >= width
+    end
+
+    def offset( dr, dc = nil )
+      if dr.respond_to? :row
+        GridPoint.new( row + dr.row, col + dr.col )
+      else
+        GridPoint.new( row + dr, col + dc )
       end
     end
+
+    def to_point
+      GRID_ORIGIN.offset( col * CELL_SIZE.width, row * CELL_SIZE.height )
+    end    
   end
 end

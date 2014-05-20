@@ -1,4 +1,4 @@
-require 'constants'
+require 'gridpoint'
 require 'clue'
 
 module Crossword
@@ -40,7 +40,7 @@ module Crossword
     end
 
     def word_cells( number, direction )
-      _, gpoint = cell_number( number, direction )
+      gpoint = cell_number( number, direction )
       word = [gpoint]
 
       loop do
@@ -67,7 +67,27 @@ module Crossword
       list[[idx + 1, list.size - 1].min].number
     end
 
+    def word_from_pos( pos, direction )
+      clues = clue_list( direction )
+
+      return [] if cell_at( pos ).blank?
+
+      clues.each do |clue|
+        cells = word_cells( clue.number, direction )
+        return cells if cells.include? pos
+      end
+
+      fail "No word from #{pos}"
+    end
+
     private
+
+    def cell_number( num, direction )
+      clue  = clue_list( direction ).find { |c| c.number == num }
+      return clue.point unless clue.nil?
+
+      fail "Didn't find #{num} #{direction}"
+    end
 
     def clue_list( direction )
       direction == :across ? across_clues : down_clues
@@ -77,37 +97,19 @@ module Crossword
       direction == :down ? across_clues : down_clues
     end
 
-    def cell_number( num, direction )
-      clue  = clue_list( direction ).find { |c| c.number == num }
-
-      return [cell_at( clue.point ), clue.point] unless clue.nil?
-
-      clue  = other_list( direction ).find { |c| c.number == num }
-
-      gpoint = clue.point
-
-      loop do
-        npoint = prev_cell( gpoint, direction )
-        break if npoint.nil?
-        gpoint = npoint
-      end
-
-      [cell_at( gpoint ), gpoint]
-    end
-
     def next_cell( gpoint, direction )
-      move_cell( gpoint.dup, direction, 1 )
+      move_cell( gpoint, direction, 1 )
     end
 
     def prev_cell( gpoint, direction )
-      move_cell( gpoint.dup, direction, -1 )
+      move_cell( gpoint, direction, -1 )
     end
 
     def move_cell( gpoint, direction, increment )
       fail "Direction: '#{direction}'" unless [:across, :down].include? direction
 
-      gpoint.col += increment if direction == :across
-      gpoint.row += increment if direction == :down
+      gpoint = gpoint.offset( 0, increment ) if direction == :across
+      gpoint = gpoint.offset( increment, 0 ) if direction == :down
 
       if gpoint.out_of_range?( @height, @width ) || cell_at( gpoint ).blank?
         nil
@@ -151,21 +153,8 @@ module Crossword
     end
   end
 
-  class GridPoint
-    attr_accessor :row, :col
-
-    def initialize( row, col )
-      @row, @col = row, col
-    end
-
-    def out_of_range?( height, width )
-      row < 0 || col < 0 ||
-      row >= height || col >= width
-    end
-  end
-
   # Represent one cell in the crossword with its solution letter, user entry,
-  # and possible number.
+  # possible number, and highlight state.
   class Cell
     attr_reader :letter
     attr_accessor :user, :number, :highlight

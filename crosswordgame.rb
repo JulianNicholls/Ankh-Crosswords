@@ -3,7 +3,6 @@
 require 'gosu_enhanced'
 require 'pp'
 
-require 'constants'
 require 'resources'
 require 'puzloader'
 require 'crosswordgrid'
@@ -44,8 +43,21 @@ module Crossword
     end
 
     def update
+      update_current unless @position.nil?
+
       highlight_word
       highlight_current
+    end
+
+    def update_current
+      @cur_word.each { |gpoint| @grid.cell_at( gpoint ).highlight = :none }
+      @grid.cell_at( @current ).highlight = :none
+
+      new_cur  = GridPoint.from_point( @position )
+      new_word = @grid.word_from_pos( new_cur, :across )
+
+      @current, @cur_word = new_cur, new_word unless new_word.empty?
+      @position = nil
     end
 
     def draw
@@ -63,7 +75,6 @@ module Crossword
     def initial_highlight
       number    = @grid.first_clue( :across )
       @cur_word = @grid.word_cells( number, :across )
-      pp @cur_word
       @current  = @cur_word[0]
     end
 
@@ -92,7 +103,7 @@ module Crossword
 
     def draw_grid
       @grid.each_with_position do |cell, gpoint|
-        pos = GRID_ORIGIN.offset( gpoint.col * CELL_SIZE.width, gpoint.row * CELL_SIZE.height )
+        pos = gpoint.to_point
         draw_rectangle( pos, CELL_SIZE, 1, BLACK )
         draw_cell( pos, cell ) unless cell.blank?
       end
