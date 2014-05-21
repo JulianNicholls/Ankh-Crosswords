@@ -8,7 +8,9 @@ the command line to load that instead.
 ## Keys and Mouse
 
 A-Z       Fill in letter
+
 Bksp      Delete content
+
 Spacebar  Swap between across and down
 
 Escape    Exit

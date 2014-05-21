@@ -81,24 +81,26 @@ module Crossword
       @grid.cell_at( @current.gpos ).highlight = :current
     end
 
+    def unhighlight
+      cells = @grid.word_cells( @current.number, @current.dir )
+      cells.each { |gpoint| @grid.cell_at( gpoint ).highlight = :none }
+      @grid.cell_at( @current.gpos ).highlight = :none
+    end
+
     def update_cell
       @grid.cell_at( @current.gpos ).user = @char
-      
+
       unless @char.empty?
-        cells = @grid.word_cells( @current.number, @current.dir )
-        cells.each { |gpoint| @grid.cell_at( gpoint ).highlight = :none }
-        @grid.cell_at( @current.gpos ).highlight = :none
-        
+        unhighlight
+
         @grid.next_word_cell( @current )
       end
-      
+
       @char = nil
     end
 
     def update_current
-      cells = @grid.word_cells( @current.number, @current.dir )
-      cells.each { |gpoint| @grid.cell_at( gpoint ).highlight = :none }
-      @grid.cell_at( @current.gpos ).highlight = :none
+      unhighlight
 
       new_gpos    = GridPoint.from_point( @position )
       _, new_num  = @grid.word_from_pos( new_gpos, @current.dir )
@@ -169,6 +171,8 @@ module Crossword
     end
   end
 
+  # Hold the current state: The current cell position and the word number
+  # and reuction that it's a part of
   class CurrentState < Struct.new( :gpos, :number, :dir )
     def swap_direction
       self.dir = dir == :across ? :down : :across

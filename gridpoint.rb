@@ -27,6 +27,6 @@ module Crossword
 
     def to_point
       GRID_ORIGIN.offset( col * CELL_SIZE.width, row * CELL_SIZE.height )
-    end    
+    end
   end
 end
