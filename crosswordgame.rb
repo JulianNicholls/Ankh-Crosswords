@@ -6,13 +6,14 @@ require 'pp'
 require 'resources'
 require 'puzloader'
 require 'crosswordgrid'
+require 'drawer'
 
 module Crossword
   # Crossword!
   class Game < Gosu::Window
     include Constants
 
-    attr_reader :font
+    attr_reader :width, :height, :font, :grid
 
     KEY_FUNCS = {
       Gosu::KbEscape  =>  -> { close },
@@ -34,7 +35,8 @@ module Crossword
       self.caption = "Ankh #{title}"
 
       @font = ResourceLoader.fonts( self )
-
+      @drawer = Drawer.new( self )
+      
       initial_highlight
     end
 
@@ -51,8 +53,8 @@ module Crossword
     end
 
     def draw
-      draw_background
-      draw_grid
+      @drawer.background
+      @drawer.grid
       draw_clues
     end
 
@@ -123,38 +125,6 @@ module Crossword
       end
 
       @position = nil
-    end
-
-    def draw_background
-      origin = Point.new( 0, 0 )
-      size   = Size.new( @width, @height )
-      draw_rectangle( origin, size, 0, WHITE )
-
-      origin.move_by!( MARGIN, MARGIN )
-      size.deflate!( MARGIN * 2, MARGIN * 2 )
-      draw_rectangle( origin, size, 0, BLACK )
-    end
-
-    def draw_grid
-      @grid.each_with_position do |cell, gpoint|
-        pos = gpoint.to_point
-        draw_rectangle( pos, CELL_SIZE, 1, BLACK )
-        draw_cell( pos, cell ) unless cell.blank?
-      end
-    end
-
-    def draw_cell( pos, cell )
-      bkgr = BK_COLOURS[cell.highlight]
-      draw_rectangle( pos.offset( 1, 1 ), CELL_SIZE.deflate( 2, 2 ), 1, bkgr )
-
-      if cell.number != 0
-        @font[:number].draw( cell.number, pos.x + 2, pos.y + 1, 1, 1, 1, BLACK )
-      end
-
-      unless cell.user.empty?
-        lpos = pos.offset( @font[:cell].centred_in( cell.user, CELL_SIZE ) )
-        @font[:cell].draw( cell.user, lpos.x, lpos.y + 1, 1, 1, 1, BLACK )
-      end
     end
 
     def draw_clues
