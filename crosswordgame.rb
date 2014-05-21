@@ -16,7 +16,7 @@ module Crossword
 
     KEY_FUNCS = {
       Gosu::KbEscape  =>  -> { close },
-      Gosu::KbSpace   =>  -> { @position = @current[0].to_point },
+      Gosu::KbSpace   =>  -> { @position = @current.gpos.to_point },
 
       Gosu::MsLeft    =>  -> { @position = Point.new( mouse_x, mouse_y ) }
     }
@@ -49,30 +49,6 @@ module Crossword
       highlight_word
       highlight_current
     end
-    
-    def update_cell
-      @grid.cell_at( @current[0] ).user = @char
-      @char = nil
-    end
-
-    def update_current
-      @cur_word.each { |gpoint| @grid.cell_at( gpoint ).highlight = :none }
-      @grid.cell_at( @current[0] ).highlight = :none
-
-      new_cur  = GridPoint.from_point( @position )
-      new_word = @grid.word_from_pos( new_cur, @current[1] )
-
-      unless new_word.empty?
-        if new_cur == @current[0]
-          @current[1] = @current[1] == :across ? :down : :across
-          new_word = @grid.word_from_pos( new_cur, @current[1] )
-        end
-
-        @current[0], @cur_word = new_cur, new_word
-      end
-
-      @position = nil
-    end
 
     def draw
       draw_background
@@ -82,25 +58,61 @@ module Crossword
 
     def button_down( btn_id )
       instance_exec( &KEY_FUNCS[btn_id] ) if KEY_FUNCS.key? btn_id
-      
+
       char = button_id_to_char( btn_id )
       @char = char.upcase unless char.nil? || !char.between?( 'a', 'z' )
+      @char = '' if btn_id == Gosu::KbBackspace
     end
 
     private
 
     def initial_highlight
       number    = @grid.first_clue( :across )
-      @cur_word = @grid.word_cells( number, :across )
-      @current  = [@cur_word[0], :across]
+      cur_word  = @grid.word_cells( number, :across )
+      @current  = CurrentState.new( cur_word[0], number, :across )
     end
 
     def highlight_word
-      @cur_word.each { |gpoint| @grid.cell_at( gpoint ).highlight = :word }
+      cells = @grid.word_cells( @current.number, @current.dir )
+      cells.each { |gpoint| @grid.cell_at( gpoint ).highlight = :word }
     end
 
     def highlight_current
-      @grid.cell_at( @current[0] ).highlight = :current
+      @grid.cell_at( @current.gpos ).highlight = :current
+    end
+
+    def update_cell
+      @grid.cell_at( @current.gpos ).user = @char
+      
+      unless @char.empty?
+        cells = @grid.word_cells( @current.number, @current.dir )
+        cells.each { |gpoint| @grid.cell_at( gpoint ).highlight = :none }
+        @grid.cell_at( @current.gpos ).highlight = :none
+        
+        @grid.next_word_cell( @current )
+      end
+      
+      @char = nil
+    end
+
+    def update_current
+      cells = @grid.word_cells( @current.number, @current.dir )
+      cells.each { |gpoint| @grid.cell_at( gpoint ).highlight = :none }
+      @grid.cell_at( @current.gpos ).highlight = :none
+
+      new_gpos    = GridPoint.from_point( @position )
+      _, new_num  = @grid.word_from_pos( new_gpos, @current.dir )
+
+      unless new_num == 0
+        if new_gpos == @current.gpos  # Click on current == swap direction
+          @current.swap_direction
+          _, new_num = @grid.word_from_pos( new_gpos, @current.dir )
+        end
+
+        @current.gpos, @current.number = new_gpos, new_num
+      end
+
+      @position = nil
     end
 
     def draw_background
@@ -154,6 +166,12 @@ module Crossword
 
     def draw_clue_list( pos, list )
       list.each { |clue| clue.draw( self, pos, CLUE_COLUMN_WIDTH ) }
+    end
+  end
+
+  class CurrentState < Struct.new( :gpos, :number, :dir )
+    def swap_direction
+      self.dir = dir == :across ? :down : :across
     end
   end
 end

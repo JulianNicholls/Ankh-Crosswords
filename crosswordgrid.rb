@@ -70,14 +70,32 @@ module Crossword
     def word_from_pos( pos, direction )
       clues = clue_list( direction )
 
-      return [] if cell_at( pos ).blank?
+      return [[], 0] if cell_at( pos ).blank?
 
       clues.each do |clue|
         cells = word_cells( clue.number, direction )
-        return cells if cells.include? pos
+        return [cells, clue.number] if cells.include? pos
       end
 
       fail "No word from #{pos}"
+    end
+    
+    def next_word_cell( state )
+      raw_next = next_cell( state.gpos, state.dir )
+      
+      if raw_next.nil?  # Fell off the word
+        number = next_clue( state.number, state.dir )
+        
+        if number == state.number   # End of list
+          state.swap_direction
+          number = first_clue( state.dir )
+        end
+        
+        state.number = number
+        state.gpos   = cell_number( number, state.dir )
+      else
+        state.gpos = raw_next
+      end
     end
 
     private
