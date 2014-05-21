@@ -43,10 +43,16 @@ module Crossword
     end
 
     def update
+      update_cell unless @char.nil?
       update_current unless @position.nil?
 
       highlight_word
       highlight_current
+    end
+    
+    def update_cell
+      @grid.cell_at( @current[0] ).user = @char
+      @char = nil
     end
 
     def update_current
@@ -76,6 +82,9 @@ module Crossword
 
     def button_down( btn_id )
       instance_exec( &KEY_FUNCS[btn_id] ) if KEY_FUNCS.key? btn_id
+      
+      char = button_id_to_char( btn_id )
+      @char = char.upcase unless char.nil? || !char.between?( 'a', 'z' )
     end
 
     private

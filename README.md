@@ -9,10 +9,10 @@ the command line to load that instead.
 
 - [x] Highlight an across word
 - [x] Highlight a down word
-- [x] Highlight the next word
+- [x] Highlight the current cell
 - [x] Swap between Across and Down Highlight
-- [ ] Better swap
-- [ ] Allow for letter entry
-- [ ] Highlight the next word after entering
+- [x] Allow for letter entry
+- [ ] Highlight the next cell after entering a letter
+- [ ] Highlight the next word after ending the current one
 - [ ] Add some tests for the loader
 - [ ] Handle scrambled puzzles
