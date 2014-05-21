@@ -67,6 +67,16 @@ module Crossword
       list[[idx + 1, list.size - 1].min].number
     end
 
+    def prev_clue( start, direction )
+      list = clue_list( direction )
+
+      idx = list.rindex { |clue| clue.number <= start }
+
+      fail "idx == nil, start: #{start}, dir: #{direction}" if idx.nil?
+
+      list[[idx - 1, 0].max].number
+    end
+
     def word_from_pos( pos, direction )
       clues = clue_list( direction )
 
@@ -95,6 +105,25 @@ module Crossword
         state.gpos   = cell_number( number, state.dir )
       else
         state.gpos = raw_next
+      end
+    end
+
+    def prev_word_cell( state )
+      raw_prev = prev_cell( state.gpos, state.dir )
+
+      if raw_prev.nil?  # Fell off the word
+        number = prev_clue( state.number, state.dir )
+
+        state.number = number
+        state.gpos   = cell_number( number, state.dir )
+        
+        loop do
+          _next = next_cell( state.gpos, state.dir )
+          break if _next.nil?
+          state.gpos = _next
+        end
+      else
+        state.gpos = raw_prev
       end
     end
 

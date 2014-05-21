@@ -88,10 +88,18 @@ module Crossword
     end
 
     def update_cell
-      @grid.cell_at( @current.gpos ).user = @char
+      unhighlight
 
-      unless @char.empty?
-        unhighlight
+      if @char.empty?
+        if @grid.cell_at( @current.gpos ).user.empty?  
+          @grid.prev_word_cell( @current )
+          @grid.cell_at( @current.gpos ).user = ''
+        else
+          @grid.cell_at( @current.gpos ).user = ''
+          @grid.prev_word_cell( @current )
+        end
+      else
+        @grid.cell_at( @current.gpos ).user = @char
 
         @grid.next_word_cell( @current )
       end
