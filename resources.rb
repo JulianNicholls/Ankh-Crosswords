@@ -5,10 +5,10 @@ module Crossword
   class ResourceLoader
     def self.fonts( window )
       {
-        cell:     Gosu::Font.new( window, Gosu.default_font_name, 15 ),
+        cell:     Gosu::Font.new( window, Gosu.default_font_name, 16 ),
         number:   Gosu::Font.new( window, Gosu.default_font_name, 8 ),
         clue:     Gosu::Font.new( window, Gosu.default_font_name, 11 ),
-        header:   Gosu::Font.new( window, Gosu.default_font_name, 20 ),
+        header:   Gosu::Font.new( window, Gosu.default_font_name, 19 ),
         button:   Gosu::Font.new( window, Gosu.default_font_name, 11 )
 #        cell:     Gosu::Font.new( window, 'Verdana', 15 ),
 #        number:   Gosu::Font.new( window, 'Verdana', 8 ),
