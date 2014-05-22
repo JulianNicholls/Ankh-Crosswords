@@ -33,8 +33,8 @@ module Crossword
       @window.draw_rectangle( pos.offset( 1, 1 ), CELL_SIZE.deflate( 2, 2 ),
                               1, BK_COLOURS[cell.highlight] )
 
-      draw_cell_number( pos, cell.number ) if cell.number != 0
-      draw_cell_letter( pos, cell.user ) unless cell.user.empty?
+      draw_cell_number( pos, cell.number ) unless cell.number == 0
+      draw_cell_letter( pos, cell.user )   unless cell.user.empty?
     end
 
     def draw_cell_number( pos, number )

@@ -36,7 +36,7 @@ module Crossword
 
       @font = ResourceLoader.fonts( self )
       @drawer = Drawer.new( self )
-      
+
       initial_highlight
     end
 
@@ -93,7 +93,7 @@ module Crossword
       unhighlight
 
       if @char.empty?
-        if @grid.cell_at( @current.gpos ).user.empty?  
+        if @grid.cell_at( @current.gpos ).user.empty?
           @grid.prev_word_cell( @current )
           @grid.cell_at( @current.gpos ).user = ''
         else
