@@ -78,11 +78,9 @@ module Crossword
     end
 
     def word_from_pos( pos, direction )
-      clues = clue_list( direction )
-
       return [[], 0] if cell_at( pos ).blank?
 
-      clues.each do |clue|
+      clue_list( direction ).each do |clue|
         cells = word_cells( clue.number, direction )
         return [cells, clue.number] if cells.include? pos
       end
@@ -93,37 +91,37 @@ module Crossword
     def next_word_cell( state )
       raw_next = next_cell( state.gpos, state.dir )
 
-      if raw_next.nil?  # Fell off the word
-        number = next_clue( state.number, state.dir )
+      state.gpos = raw_next and return unless raw_next.nil?  # same word
 
-        if number == state.number   # End of list
-          state.swap_direction
-          number = first_clue( state.dir )
-        end
+      number = next_clue( state.number, state.dir )
 
-        state.number = number
-        state.gpos   = cell_number( number, state.dir )
-      else
-        state.gpos = raw_next
+      if number == state.number   # End of list, swap directions
+        state.swap_direction
+        number = first_clue( state.dir )
       end
+
+      state.number = number
+      state.gpos   = cell_number( number, state.dir )
     end
 
     def prev_word_cell( state )
       raw_prev = prev_cell( state.gpos, state.dir )
 
-      if raw_prev.nil?  # Fell off the word
-        number = prev_clue( state.number, state.dir )
+      state.gpos = raw_prev and return unless raw_prev.nil?  # same word
 
-        state.number = number
-        state.gpos   = cell_number( number, state.dir )
-        
-        loop do
-          _next = next_cell( state.gpos, state.dir )
-          break if _next.nil?
-          state.gpos = _next
-        end
-      else
-        state.gpos = raw_prev
+      number = prev_clue( state.number, state.dir )
+
+      return if number == state.number    # Already at first
+
+      state.number = number
+      state.gpos   = cell_number( number, state.dir )
+
+      # Find the end of the previous word
+
+      loop do
+        raw_next = next_cell( state.gpos, state.dir )
+        break if raw_next.nil?
+        state.gpos = raw_next
       end
     end
 
@@ -158,11 +156,10 @@ module Crossword
       gpoint = gpoint.offset( 0, increment ) if direction == :across
       gpoint = gpoint.offset( increment, 0 ) if direction == :down
 
-      if gpoint.out_of_range?( @height, @width ) || cell_at( gpoint ).blank?
-        nil
-      else
-        gpoint
-      end
+      return nil if gpoint.out_of_range?( @height, @width ) ||
+                    cell_at( gpoint ).blank?
+
+      gpoint
     end
 
     def build_grid( rows )
@@ -190,13 +187,13 @@ module Crossword
     end
 
     def needs_across_number?( gpoint )
-      (gpoint.col == 0 || cell_at( gpoint.row, gpoint.col - 1).blank?) &&
-      gpoint.col < @width - 1 && !cell_at( gpoint.row, gpoint.col + 1 ).blank?
+      (gpoint.col == 0 || cell_at( gpoint.offset( 0, -1 ) ).blank?) &&
+      gpoint.col < @width - 1 && !cell_at( gpoint.offset( 0, 1 ) ).blank?
     end
 
     def needs_down_number?( gpoint )
-      (gpoint.row == 0 || cell_at( gpoint.row - 1, gpoint.col ).blank?) &&
-      gpoint.row < @height - 1 && !cell_at( gpoint.row + 1, gpoint.col ).blank?
+      (gpoint.row == 0 || cell_at( gpoint.offset( -1, 0 ) ).blank?) &&
+      gpoint.row < @height - 1 && !cell_at( gpoint.offset( 1, 0 ) ).blank?
     end
   end
 
