@@ -5,7 +5,7 @@ require 'pp'
 
 require 'resources'
 require 'puzloader'
-require 'crosswordgrid'
+require 'grid'
 require 'drawer'
 
 module Crossword
