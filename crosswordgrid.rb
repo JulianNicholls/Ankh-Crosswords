@@ -179,10 +179,7 @@ module Crossword
         @clues << Clue.new( :across, number, clues.next, gpoint ) if nan
         @clues << Clue.new( :down,   number, clues.next, gpoint ) if ndn
 
-        if nan || ndn
-          cell.number = number
-          number += 1
-        end
+        cell.number = (number += 1) - 1 if nan || ndn
       end
     end
 
