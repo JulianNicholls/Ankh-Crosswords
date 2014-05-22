@@ -1,15 +1,19 @@
 require 'gridpoint'
-require 'clue'
+require 'cluelist'
 
 module Crossword
   # Represent a whole crossword grid
   class Grid
-    attr_reader :grid
+    extend Forwardable
+
+    def_delegators :@cluelist, :across_clues, :down_clues, :clue_list, :other_list
+    def_delegators :@cluelist, :first_clue, :next_clue, :prev_clue, :cell_number
+
     attr_reader :width, :height
 
     def initialize( rows, clues )
       @width, @height = rows[0].size, rows.size
-      @clues    = []
+      @cluelist       = ClueList.new
 
       build_grid( rows )
       add_numbers_and_clues( clues.to_enum )
@@ -23,25 +27,15 @@ module Crossword
       end
     end
 
-    def across_clues
-      @clues.select { |c| c.direction == :across }
-    end
-
-    def down_clues
-      @clues.select { |c| c.direction == :down }
-    end
-
     def each_with_position
-      @height.times do |row|
-        @width.times do |col|
-          yield cell_at( row, col ), GridPoint.new( row, col )
-        end
+      height.times do |row|
+        width.times { |col| yield cell_at( row, col ), GridPoint.new( row, col ) }
       end
     end
 
     def word_cells( number, direction )
       gpoint = cell_number( number, direction )
-      word = [gpoint]
+      word   = [gpoint]
 
       loop do
         gpoint = next_cell( gpoint, direction )
@@ -50,31 +44,6 @@ module Crossword
       end
 
       word
-    end
-
-    def first_clue( direction )
-      list = clue_list( direction )
-      list.first.number
-    end
-
-    def next_clue( start, direction )
-      list = clue_list( direction )
-
-      idx = list.index { |clue| clue.number >= start }
-
-      fail "idx == nil, start: #{start}, dir: #{direction}" if idx.nil?
-
-      list[[idx + 1, list.size - 1].min].number
-    end
-
-    def prev_clue( start, direction )
-      list = clue_list( direction )
-
-      idx = list.rindex { |clue| clue.number <= start }
-
-      fail "idx == nil, start: #{start}, dir: #{direction}" if idx.nil?
-
-      list[[idx - 1, 0].max].number
     end
 
     def word_from_pos( pos, direction )
@@ -127,21 +96,6 @@ module Crossword
 
     private
 
-    def cell_number( num, direction )
-      clue  = clue_list( direction ).find { |c| c.number == num }
-      return clue.point unless clue.nil?
-
-      fail "Didn't find #{num} #{direction}"
-    end
-
-    def clue_list( direction )
-      direction == :across ? across_clues : down_clues
-    end
-
-    def other_list( direction )
-      direction == :down ? across_clues : down_clues
-    end
-
     def next_cell( gpoint, direction )
       move_cell( gpoint, direction, 1 )
     end
@@ -176,8 +130,8 @@ module Crossword
 
         nan, ndn = needs_across_number?( gpoint ), needs_down_number?( gpoint )
 
-        @clues << Clue.new( :across, number, clues.next, gpoint ) if nan
-        @clues << Clue.new( :down,   number, clues.next, gpoint ) if ndn
+        @cluelist.add Clue.new( :across, number, clues.next, gpoint ) if nan
+        @cluelist.add Clue.new( :down,   number, clues.next, gpoint ) if ndn
 
         cell.number = (number += 1) - 1 if nan || ndn
       end
