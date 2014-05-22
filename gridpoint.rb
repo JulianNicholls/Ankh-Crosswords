@@ -13,8 +13,7 @@ module Crossword
     end
 
     def out_of_range?( height, width )
-      row < 0 || col < 0 ||
-      row >= height || col >= width
+      row < 0 || row >= height || col < 0 || col >= width
     end
 
     def offset( dr, dc = nil )

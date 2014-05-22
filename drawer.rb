@@ -1,15 +1,14 @@
 require 'constants'
 
 module Crossword
-
-  # Draw sections of the game  
+  # Draw sections of the game
   class Drawer
     include Constants
-    
+
     def initialize( window )
       @window = window
     end
-    
+
     def background
       origin = Point.new( 0, 0 )
       size   = Size.new( @window.width, @window.height )
@@ -19,29 +18,33 @@ module Crossword
       size.deflate!( MARGIN * 2, MARGIN * 2 )
       @window.draw_rectangle( origin, size, 0, BLACK )
     end
-    
+
     def grid
       @window.grid.each_with_position do |cell, gpoint|
         pos = gpoint.to_point
         @window.draw_rectangle( pos, CELL_SIZE, 1, BLACK )
         draw_cell( pos, cell ) unless cell.blank?
-      end      
+      end
     end
 
     private
-    
+
     def draw_cell( pos, cell )
-      bkgr = BK_COLOURS[cell.highlight]
-      @window.draw_rectangle( pos.offset( 1, 1 ), CELL_SIZE.deflate( 2, 2 ), 1, bkgr )
+      @window.draw_rectangle( pos.offset( 1, 1 ), CELL_SIZE.deflate( 2, 2 ),
+                              1, BK_COLOURS[cell.highlight] )
 
-      if cell.number != 0
-        @window.font[:number].draw( cell.number, pos.x + 2, pos.y + 1, 1, 1, 1, BLACK )
-      end
+      draw_cell_number( pos, cell.number ) if cell.number != 0
+      draw_cell_letter( pos, cell.user ) unless cell.user.empty?
+    end
 
-      unless cell.user.empty?
-        lpos = pos.offset( @window.font[:cell].centred_in( cell.user, CELL_SIZE ) )
-        @window.font[:cell].draw( cell.user, lpos.x, lpos.y + 1, 1, 1, 1, BLACK )
-      end
+    def draw_cell_number( pos, number )
+      @window.font[:number].draw( number, pos.x + 2, pos.y + 1, 1, 1, 1, BLACK )
+    end
+
+    def draw_cell_letter( pos, letter )
+      cf = @window.font[:cell]
+      lpos = pos.offset( cf.centred_in( letter, CELL_SIZE ) )
+      cf.draw( letter, lpos.x, lpos.y + 1, 1, 1, 1, BLACK )
     end
   end
 end
