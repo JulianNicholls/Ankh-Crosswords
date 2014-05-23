@@ -13,6 +13,8 @@ Bksp      Delete content
 
 Spacebar  Swap between across and down
 
+Tab       Move to the next clue
+
 Escape    Exit
 
 Click on a cell to highlight it. Clicking on the currently highlighted cell
