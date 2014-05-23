@@ -6,8 +6,7 @@ module Crossword
   class Grid
     extend Forwardable
 
-    def_delegators :@cluelist, :across_clues, :down_clues, :clue_list, :other_list
-    def_delegators :@cluelist, :first_clue, :next_clue, :prev_clue, :cell_number
+    def_delegators :@cluelist, :across_clues, :down_clues, :first_clue
 
     attr_reader :width, :height
 
@@ -34,7 +33,7 @@ module Crossword
     end
 
     def word_cells( number, direction )
-      gpoint = cell_number( number, direction )
+      gpoint = @cluelist.cell_number( number, direction )
       word   = [gpoint]
 
       loop do
@@ -49,7 +48,7 @@ module Crossword
     def word_from_pos( pos, direction )
       return [[], 0] if cell_at( pos ).blank?
 
-      clue_list( direction ).each do |clue|
+      @cluelist.clues( direction ).each do |clue|
         cells = word_cells( clue.number, direction )
         return [cells, clue.number] if cells.include? pos
       end
@@ -62,7 +61,7 @@ module Crossword
 
       state.gpos = raw_next and return unless raw_next.nil?  # same word
 
-      number = next_clue( state.number, state.dir )
+      number = @cluelist.next_clue( state.number, state.dir )
 
       if number == state.number   # End of list, swap directions
         state.swap_direction
@@ -70,7 +69,7 @@ module Crossword
       end
 
       state.number = number
-      state.gpos   = cell_number( number, state.dir )
+      state.gpos   = @cluelist.cell_number( number, state.dir )
     end
 
     def prev_word_cell( state )
@@ -78,12 +77,12 @@ module Crossword
 
       state.gpos = raw_prev and return unless raw_prev.nil?  # same word
 
-      number = prev_clue( state.number, state.dir )
+      number = @cluelist.prev_clue( state.number, state.dir )
 
       return if number == state.number    # Already at first
 
       state.number = number
-      state.gpos   = cell_number( number, state.dir )
+      state.gpos   = @cluelist.cell_number( number, state.dir )
 
       # Find the end of the previous word
 
