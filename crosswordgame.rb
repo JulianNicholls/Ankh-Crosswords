@@ -17,9 +17,14 @@ module Crossword
 
     KEY_FUNCS = {
       Gosu::KbEscape  =>  -> { close },
-      Gosu::KbSpace   =>  -> { @position = @current.gpos.to_point },
+      Gosu::KbSpace   =>  -> { @position = @current.gpos },
+      
+      Gosu::KbDown    =>  -> { @position = @grid.cell_down( @current.gpos ) },
+      Gosu::KbUp      =>  -> { @position = @grid.cell_up( @current.gpos ) },
+      Gosu::KbLeft    =>  -> { @position = @grid.cell_left( @current.gpos ) },
+      Gosu::KbRight   =>  -> { @position = @grid.cell_right( @current.gpos ) },
 
-      Gosu::MsLeft    =>  -> { @position = Point.new( mouse_x, mouse_y ) }
+      Gosu::MsLeft    =>  -> { @position = GridPoint.from_xy( mouse_x, mouse_y ) }
     }
 
     def initialize( grid, title )
@@ -27,14 +32,14 @@ module Crossword
       @width  = BASE_WIDTH + grid.width * CELL_SIZE.width
       @height = BASE_HEIGHT + grid.height * CELL_SIZE.height
 
-      @down_left    = @width - (MARGIN * 2 + CLUE_COLUMN_WIDTH)
-      @across_left  = @down_left - (MARGIN * 2 + CLUE_COLUMN_WIDTH)
-
       super( @width, @height, false, 100 )
 
       self.caption = "Ankh #{title}"
 
-      @font = ResourceLoader.fonts( self )
+      @down_left    = @width - (MARGIN * 2 + CLUE_COLUMN_WIDTH)
+      @across_left  = @down_left - (MARGIN * 2 + CLUE_COLUMN_WIDTH)
+
+      @font   = ResourceLoader.fonts( self )
       @drawer = Drawer.new( self )
 
       initial_highlight
@@ -45,7 +50,7 @@ module Crossword
     end
 
     def update
-      update_cell unless @char.nil?
+      update_cell    unless @char.nil?
       update_current unless @position.nil?
 
       highlight_word
@@ -112,7 +117,7 @@ module Crossword
     def update_current
       unhighlight
 
-      new_gpos    = GridPoint.from_point( @position )
+      new_gpos    = @position
       _, new_num  = @grid.word_from_pos( new_gpos, @current.dir )
 
       unless new_num == 0
