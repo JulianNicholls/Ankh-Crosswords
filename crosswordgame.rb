@@ -148,16 +148,18 @@ module Crossword
       pos.move_by!( 0, @font[:header].height )
     end
 
+    # Draw the list of clues, ensuring that the current one is on screen
     def draw_clue_list( pos, list, current_list )
       list.each do |clue|
-        clue.draw( self, pos, CLUE_COLUMN_WIDTH, 
-                   current_list && @current.number == clue.number )
+        is_current = current_list && @current.number == clue.number
+        clue.draw( self, pos, CLUE_COLUMN_WIDTH, is_current )
+        break if pos.y > height - MARGIN
       end
     end
   end
 
-  # Hold the current state: The current cell position and the word number
-  # and reuction that it's a part of
+  # Hold the current state: The cell position, and word number and direction
+  # that it's a part of.
   class CurrentState < Struct.new( :gpos, :number, :dir )
     def swap_direction
       self.dir = dir == :across ? :down : :across

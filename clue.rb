@@ -27,6 +27,8 @@ module Crossword
         draw_simple( game, pos, text )
       end
 
+      pos.move_by!( 0, 1 )
+      
       @region = Region.new( tlc, Size.new( max_width, pos.y - tlc.y ) )
       
       @region.draw( game, 1, CLUE_LIGHT ) if selected
