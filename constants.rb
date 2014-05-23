@@ -20,7 +20,9 @@ module Crossword
     BLACK       = Gosu::Color.new( 0xff000000 )
     HIGHLIGHT   = Gosu::Color.new( 0xffe8ffff )   # Liquid Cyan
     CURRENT     = Gosu::Color.new( 0xffa8ffff )   # Less Liquid Cyan
-
+    CLUE_LIGHT  = Gosu::Color.new( 0xff009090 )   # Dark Cyan
+    ERROR       = Gosu::Color.new( 0xffffe0e0 )   # Liquid Pink
+    
     BK_COLOURS  = { none: WHITE, word: HIGHLIGHT, current: CURRENT }
   end
 end

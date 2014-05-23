@@ -1,4 +1,3 @@
-
 module Crossword
   # Have a clue.
   class Clue
@@ -14,13 +13,13 @@ module Crossword
       @region     = region
     end
 
-    def draw( game, pos, max_width )
+    def draw( game, pos, max_width, selected )
       font = game.font[:clue]
 
       size  = font.measure( text )
-      tlc   = pos
+      tlc   = pos.dup
 
-      font.draw( number, pos.x, pos.y, 1, 1, 1, WHITE )
+      font.draw( number, pos.x, pos.y, 2, 1, 1, WHITE )
 
       if size.width > max_width
         draw_wrapped( game, pos, text, (size.width / max_width).ceil )
@@ -28,7 +27,9 @@ module Crossword
         draw_simple( game, pos, text )
       end
 
-      @region = Region.new( tlc, Size.new( CLUE_COLUMN_WIDTH, pos.y - tlc.y ) )
+      @region = Region.new( tlc, Size.new( max_width, pos.y - tlc.y ) )
+      
+      @region.draw( game, 1, CLUE_LIGHT ) if selected
     end
 
     private
@@ -42,7 +43,7 @@ module Crossword
     def draw_simple( game, pos, text )
       font = game.font[:clue]
 
-      font.draw( text, pos.x + 18, pos.y, 1, 1, 1, WHITE )
+      font.draw( text, pos.x + 18, pos.y, 2, 1, 1, WHITE )
       pos.move_by!( 0, font.height )
     end
 
@@ -50,9 +51,12 @@ module Crossword
       return [text] if pieces == 1
 
       pos    = text.size / pieces
+      
+      # Find the next and previous spaces, and ...
       nspace = text.index( ' ', pos )
       pspace = text.rindex( ' ', pos )
 
+      # ... split at the nearest one
       space = (nspace - pos).abs > (pspace - pos).abs ? pspace : nspace
 
       [text[0...space]] + wrap( text[space + 1..-1], pieces - 1 )

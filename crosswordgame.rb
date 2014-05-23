@@ -138,8 +138,8 @@ module Crossword
       draw_clue_header( across_point, 'Across' )
       draw_clue_header( down_point, 'Down' )
 
-      draw_clue_list( across_point, @grid.across_clues )
-      draw_clue_list( down_point, @grid.down_clues )
+      draw_clue_list( across_point, @grid.across_clues, @current.dir == :across )
+      draw_clue_list( down_point, @grid.down_clues, @current.dir == :down )
     end
 
     def draw_clue_header( pos, header )
@@ -148,8 +148,11 @@ module Crossword
       pos.move_by!( 0, @font[:header].height )
     end
 
-    def draw_clue_list( pos, list )
-      list.each { |clue| clue.draw( self, pos, CLUE_COLUMN_WIDTH ) }
+    def draw_clue_list( pos, list, current_list )
+      list.each do |clue|
+        clue.draw( self, pos, CLUE_COLUMN_WIDTH, 
+                   current_list && @current.number == clue.number )
+      end
     end
   end
 
