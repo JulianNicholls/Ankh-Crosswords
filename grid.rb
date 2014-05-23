@@ -53,12 +53,12 @@ module Crossword
       word
     end
 
-    def word_from_pos( pos, direction )
-      return [[], 0] if cell_at( pos ).blank?
+    def word_num_from_pos( pos, direction )
+      return 0 if cell_at( pos ).blank?
 
       @cluelist.clues( direction ).each do |clue|
         cells = word_cells( clue.number, direction )
-        return [cells, clue.number] if cells.include? pos
+        return clue.number if cells.include? pos
       end
 
       fail "No word from #{pos}"

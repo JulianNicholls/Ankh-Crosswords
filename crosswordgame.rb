@@ -18,7 +18,7 @@ module Crossword
     KEY_FUNCS = {
       Gosu::KbEscape  =>  -> { close },
       Gosu::KbSpace   =>  -> { @position = @current.gpos },
-      
+
       Gosu::KbDown    =>  -> { @position = @grid.cell_down( @current.gpos ) },
       Gosu::KbUp      =>  -> { @position = @grid.cell_up( @current.gpos ) },
       Gosu::KbLeft    =>  -> { @position = @grid.cell_left( @current.gpos ) },
@@ -117,16 +117,15 @@ module Crossword
     def update_current
       unhighlight
 
-      new_gpos    = @position
-      _, new_num  = @grid.word_from_pos( new_gpos, @current.dir )
+      new_num  = @grid.word_num_from_pos( @position, @current.dir )
 
       unless new_num == 0
-        if new_gpos == @current.gpos  # Click on current == swap direction
+        if @position == @current.gpos  # Click on current == swap direction
           @current.swap_direction
-          _, new_num = @grid.word_from_pos( new_gpos, @current.dir )
+          new_num = @grid.word_num_from_pos( @position, @current.dir )
         end
 
-        @current.gpos, @current.number = new_gpos, new_num
+        @current.gpos, @current.number = @position, new_num
       end
 
       @position = nil
