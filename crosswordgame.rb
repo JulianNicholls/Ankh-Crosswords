@@ -18,6 +18,7 @@ module Crossword
     KEY_FUNCS = {
       Gosu::KbEscape  =>  -> { close },
       Gosu::KbSpace   =>  -> { @position = @current.gpos },
+      Gosu::KbTab     =>  -> { next_clue },
 
       Gosu::KbDown    =>  -> { @position = @grid.cell_down( @current.gpos ) },
       Gosu::KbUp      =>  -> { @position = @grid.cell_up( @current.gpos ) },
@@ -131,6 +132,13 @@ module Crossword
       @position = nil
     end
 
+    def next_clue
+      unhighlight
+      
+      @current.number = @grid.next_clue( @current.number, @current.dir )
+      @current.gpos   = @grid.word_cells( @current.number, @current.dir )[0]
+    end
+    
     def draw_clues
       across_point = Point.new( @across_left, MARGIN * 2 )
       down_point   = Point.new( @down_left, MARGIN * 2 )
