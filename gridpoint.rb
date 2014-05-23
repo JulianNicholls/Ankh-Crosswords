@@ -6,9 +6,13 @@ module Crossword
     include Constants
 
     def self.from_point( pos )
+      from_xy( pos.x, pos.y )
+    end
+
+    def self.from_xy( x, y )
       new(
-        ((pos.y - GRID_ORIGIN.y) / CELL_SIZE.height).floor,
-        ((pos.x - GRID_ORIGIN.x) / CELL_SIZE.width).floor
+        ((y - GRID_ORIGIN.y) / CELL_SIZE.height).floor,
+        ((x - GRID_ORIGIN.x) / CELL_SIZE.width).floor
       )
     end
 
