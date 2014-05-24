@@ -5,11 +5,10 @@ module Crossword
     class Traverser < Struct.new( :grid )
       # Work out the next word cell, which could be at the beginning of the next
       # word in the same direction, or even the first word in the other direction.
-
       def next_word_cell( state )
         raw_next = next_cell( state.gpos, state.dir )
 
-        state.gpos = raw_next and return unless raw_next.nil?  # same word
+        return state.gpos = raw_next unless raw_next.nil?  # same word
 
         number = grid.next_clue( state.number, state.dir )
 
@@ -18,24 +17,21 @@ module Crossword
           number = first_clue( state.dir )
         end
 
-        state.number = number
-        state.gpos   = grid.cell_number( number, state.dir )
+        state.new_word( number, grid.cell_number( number, state.dir ) )
       end
 
       # Work out the previous word cell, which could be the end of the previous word
       # Stops at the first word in the same direction
-
       def prev_word_cell( state )
         raw_prev = prev_cell( state.gpos, state.dir )
 
-        state.gpos = raw_prev and return unless raw_prev.nil?  # same word
+        return state.gpos = raw_prev unless raw_prev.nil?  # same word
 
         number = grid.prev_clue( state.number, state.dir )
 
         return if number == state.number    # Already at first
 
-        state.number = number
-        state.gpos   = grid.cell_number( number, state.dir )
+        state.new_word( number, grid.cell_number( number, state.dir ) )
 
         # Find the end of the previous word
 
@@ -64,6 +60,8 @@ module Crossword
         move_cursor( gpoint, 0, -1 )
       end
 
+      # Move to the next and previous cell in the specified direction,
+      # returning it or nil if blank or off the grid
       def next_cell( gpoint, direction )
         move_cell( gpoint, direction, 1 )
       end
@@ -74,6 +72,8 @@ module Crossword
         move_cell( gpoint, direction, -1 )
       end
 
+      # Do what's necessary to move to the next and previous cell in the
+      # specified direction, teturning whether it's valid
       def move_cell( gpoint, direction, increment )
         fail "Direction: '#{direction}'" unless [:across, :down].include? direction
 
@@ -86,6 +86,8 @@ module Crossword
         gpoint
       end
 
+      # Move the cursor repeatedly in the specified direction, skipping blanks,
+      # and stopping at the four edges.
       def move_cursor( gpoint, rinc, cinc )
         new_point = gpoint.offset( rinc, cinc )
 

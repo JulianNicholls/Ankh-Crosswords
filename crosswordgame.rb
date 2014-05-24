@@ -99,13 +99,10 @@ module Crossword
       unhighlight
 
       if @char.empty?
-        if @grid.cell_at( @current.gpos ).user.empty?
-          @grid.prev_word_cell( @current )
-          @grid.cell_at( @current.gpos ).user = ''
-        else
-          @grid.cell_at( @current.gpos ).user = ''
-          @grid.prev_word_cell( @current )
-        end
+        cell_empty = @grid.cell_at( @current.gpos ).user.empty?
+        @grid.prev_word_cell( @current ) if cell_empty
+        @grid.cell_at( @current.gpos ).user = ''
+        @grid.prev_word_cell( @current ) unless cell_empty
       else
         @grid.cell_at( @current.gpos ).user = @char
 
@@ -134,11 +131,11 @@ module Crossword
 
     def next_clue
       unhighlight
-      
+
       @current.number = @grid.next_clue( @current.number, @current.dir )
       @current.gpos   = @grid.word_cells( @current.number, @current.dir )[0]
     end
-    
+
     def draw_clues
       across_point = Point.new( @across_left, MARGIN * 2 )
       down_point   = Point.new( @down_left, MARGIN * 2 )
@@ -146,8 +143,10 @@ module Crossword
       draw_clue_header( across_point, 'Across' )
       draw_clue_header( down_point, 'Down' )
 
-      draw_clue_list( across_point, @grid.across_clues, @current.dir == :across )
-      draw_clue_list( down_point, @grid.down_clues, @current.dir == :down )
+      draw_clue_list_with_current( across_point, @grid.across_clues,
+                                   @current.dir == :across )
+      draw_clue_list_with_current( down_point, @grid.down_clues,
+                                   @current.dir == :down )
     end
 
     def draw_clue_header( pos, header )
@@ -156,13 +155,30 @@ module Crossword
       pos.move_by!( 0, @font[:header].height )
     end
 
+    # Render the clue list off screen first, then redraw it where asked,
+    # potentially not from the start if the current clue wouldn't be displayed
+    def draw_clue_list_with_current( pos, list, current_list )
+      off_screen = pos.offset( width, 0 )
+      skip =  draw_clue_list( off_screen, list, current_list )
+      draw_clue_list( pos, list[skip..-1], current_list )
+    end
+
     # Draw the list of clues, ensuring that the current one is on screen
     def draw_clue_list( pos, list, current_list )
+      found = !current_list # Not current, found OK. Current, still looking
+      shown = 0
+
       list.each do |clue|
         is_current = current_list && @current.number == clue.number
-        clue.draw( self, pos, CLUE_COLUMN_WIDTH, is_current )
-        break if pos.y > height - MARGIN
+        found ||= is_current
+
+        lh = clue.draw( self, pos, CLUE_COLUMN_WIDTH, is_current )
+        shown += 1
+
+        break if pos.y >= height - (MARGIN + lh)
       end
+
+      current_list && !found ? (list.size - shown) : 0
     end
   end
 
@@ -171,6 +187,10 @@ module Crossword
   class CurrentState < Struct.new( :gpos, :number, :dir )
     def swap_direction
       self.dir = dir == :across ? :down : :across
+    end
+
+    def new_word( clue_number, pos )
+      self.number, self.gpos = clue_number, pos
     end
   end
 end
