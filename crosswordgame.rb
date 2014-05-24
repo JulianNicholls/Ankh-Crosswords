@@ -132,8 +132,8 @@ module Crossword
     def next_clue
       unhighlight
 
-      @current.number = @grid.next_clue( @current.number, @current.dir )
-      @current.gpos   = @grid.word_cells( @current.number, @current.dir )[0]
+      number = @grid.next_clue( @current.number, @current.dir ) 
+      @current.new_word( number, @grid.cell_number( number, @current.dir ) )
     end
 
     def draw_clues
@@ -155,11 +155,17 @@ module Crossword
       pos.move_by!( 0, @font[:header].height )
     end
 
-    # Render the clue list off screen first, then redraw it where asked,
-    # potentially not from the start if the current clue wouldn't be displayed
+    # Render the clue list off screen first if it's the list with the current clue,
+    # then redraw it where asked, potentially not from the start if the current
+    # clue wouldn't be displayed
     def draw_clue_list_with_current( pos, list, current_list )
-      off_screen = pos.offset( width, 0 )
-      skip =  draw_clue_list( off_screen, list, current_list )
+      if current_list
+        off_screen = pos.offset( width, 0 )
+        skip = draw_clue_list( off_screen, list, current_list )
+      else
+        skip = 0
+      end
+      
       draw_clue_list( pos, list[skip..-1], current_list )
     end
 
