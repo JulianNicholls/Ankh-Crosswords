@@ -7,7 +7,7 @@ module Crossword
   class Grid
     extend Forwardable
 
-    def_delegators :@cluelist, :across_clues, :down_clues, :cell_number
+    def_delegators :@cluelist, :all_clues, :across_clues, :down_clues, :cell_number
     def_delegators :@cluelist, :first_clue, :next_clue, :prev_clue
     def_delegators :@traverser, :cell_down, :cell_up, :cell_right, :cell_left
     def_delegators :@traverser, :next_word_cell, :prev_word_cell
