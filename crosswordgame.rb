@@ -99,10 +99,7 @@ module Crossword
       unhighlight
 
       if @char.empty?
-        cell_empty = @grid.cell_at( @current.gpos ).user.empty?
-        @grid.prev_word_cell( @current ) if cell_empty
-        @grid.cell_at( @current.gpos ).user = ''
-        @grid.prev_word_cell( @current ) unless cell_empty
+        empty_cell
       else
         @grid.cell_at( @current.gpos ).user = @char
 
@@ -112,12 +109,44 @@ module Crossword
       @char = nil
     end
 
+    def empty_cell
+      cell_empty = @grid.cell_at( @current.gpos ).user.empty?
+      @grid.prev_word_cell( @current ) if cell_empty
+      @grid.cell_at( @current.gpos ).user = ''
+      @grid.prev_word_cell( @current ) unless cell_empty
+    end
+
     def update_current
       unhighlight
 
+      return current_from_clue if @position.out_of_range?( @grid )
+
+      current_from_cell
+
+      @position = nil
+    end
+
+    def current_from_clue
+      mouse_pos = Point.new( mouse_x, mouse_y )
+
+      @grid.all_clues.each do |clue|
+        next if clue.region.nil?
+
+        if clue.region.contains?( mouse_pos )
+          @current = CurrentState.new(
+            @grid.cell_number( clue.number, clue.direction ),
+            clue.number, clue.direction )
+          break
+        end
+      end
+
+      @position = nil
+    end
+
+    def current_from_cell
       new_num  = @grid.word_num_from_pos( @position, @current.dir )
 
-      unless new_num == 0
+      unless new_num == 0   # Blank square, most likely
         if @position == @current.gpos  # Click on current == swap direction
           @current.swap_direction
           new_num = @grid.word_num_from_pos( @position, @current.dir )
@@ -125,14 +154,12 @@ module Crossword
 
         @current.gpos, @current.number = @position, new_num
       end
-
-      @position = nil
     end
 
     def next_clue
       unhighlight
 
-      number = @grid.next_clue( @current.number, @current.dir ) 
+      number = @grid.next_clue( @current.number, @current.dir )
       @current.new_word( number, @grid.cell_number( number, @current.dir ) )
     end
 
@@ -159,24 +186,24 @@ module Crossword
     # then redraw it where asked, potentially not from the start if the current
     # clue wouldn't be displayed
     def draw_clue_list_with_current( pos, list, current_list )
+      skip = 0
+
       if current_list
         off_screen = pos.offset( width, 0 )
         skip = draw_clue_list( off_screen, list, current_list )
-      else
-        skip = 0
       end
-      
+
       draw_clue_list( pos, list[skip..-1], current_list )
     end
 
     # Draw the list of clues, ensuring that the current one is on screen
     def draw_clue_list( pos, list, current_list )
-      found = !current_list # Not current, found OK. Current, still looking
+      found = -1
       shown = 0
 
-      list.each do |clue|
+      list.each_with_index do |clue, idx|
         is_current = current_list && @current.number == clue.number
-        found ||= is_current
+        found = idx if is_current
 
         lh = clue.draw( self, pos, CLUE_COLUMN_WIDTH, is_current )
         shown += 1
@@ -184,7 +211,17 @@ module Crossword
         break if pos.y >= height - (MARGIN + lh)
       end
 
-      current_list && !found ? (list.size - shown) : 0
+      # If it's not the current list, we just show the beginning
+      return 0 unless current_list
+
+      # If it's not there, show the end
+      return list.size - shown if found == -1
+
+      # If we're nearing the bottom, move it up a bit
+      return ((list.size - shown) / 2).floor if (shown - found) < 4
+
+      # Otherwise, everything's hunky-dory
+      0
     end
   end
 
