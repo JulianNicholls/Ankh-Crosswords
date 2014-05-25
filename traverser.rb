@@ -80,7 +80,7 @@ module Crossword
         gpoint = gpoint.offset( 0, increment ) if direction == :across
         gpoint = gpoint.offset( increment, 0 ) if direction == :down
 
-        return nil if gpoint.out_of_range?( grid.height, grid.width ) ||
+        return nil if gpoint.out_of_range?( grid ) ||
                       grid.cell_at( gpoint ).blank?
 
         gpoint
@@ -92,7 +92,7 @@ module Crossword
         new_point = gpoint.offset( rinc, cinc )
 
         loop do
-          return gpoint if new_point.out_of_range?( grid.height, grid.width )
+          return gpoint if new_point.out_of_range?( grid )
           break unless grid.cell_at( new_point ).blank?
           new_point = new_point.offset( rinc, cinc )
         end
