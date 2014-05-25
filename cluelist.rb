@@ -12,6 +12,10 @@ module Crossword
         @clues << clue
       end
 
+      def all_clues
+        @clues
+      end
+
       def across_clues
         @clues.select { |c| c.direction == :across }
       end
