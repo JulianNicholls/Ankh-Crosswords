@@ -14,7 +14,7 @@ module Crossword
 
         if number == state.number   # End of list, swap directions
           state.swap_direction
-          number = first_clue( state.dir )
+          number = grid.first_clue( state.dir )
         end
 
         state.new_word( number, grid.cell_number( number, state.dir ) )
