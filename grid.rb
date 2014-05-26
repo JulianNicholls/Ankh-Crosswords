@@ -63,7 +63,17 @@ module Crossword
 
       fail "No word from #{pos}"
     end
-
+    
+    def completed
+      each_with_position do |cell, _|
+        next if cell.blank?
+        return false  if cell.user == ''
+        return :wrong if cell.user != cell.letter
+      end
+      
+      return :complete    # All present and correct   
+    end
+    
     private
 
     def build_grid( raw_rows )
