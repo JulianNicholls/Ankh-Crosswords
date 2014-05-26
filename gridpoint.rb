@@ -17,7 +17,7 @@ module Crossword
     end
 
     def out_of_range?( height, width = nil )
-      return false if row < 0 || col < 0
+      return true if row < 0 || col < 0
 
       if height.respond_to? :height
         row >= height.height || col >= height.width
