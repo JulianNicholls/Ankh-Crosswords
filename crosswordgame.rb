@@ -40,9 +40,10 @@ module Crossword
       @down_left    = @width - (MARGIN * 2 + CLUE_COLUMN_WIDTH)
       @across_left  = @down_left - (MARGIN * 2 + CLUE_COLUMN_WIDTH)
 
-      @font   = ResourceLoader.fonts( self )
-      @drawer = Drawer.new( self )
-
+      @font       = ResourceLoader.fonts( self )
+      @drawer     = Drawer.new( self )
+      @help_mode  = false
+      
       initial_highlight
     end
 
@@ -82,17 +83,26 @@ module Crossword
 
     def highlight_word
       cells = @grid.word_cells( @current.number, @current.dir )
-      cells.each { |gpoint| @grid.cell_at( gpoint ).highlight = :word }
+      cells.each do |gpoint|
+        cell = @grid.cell_at( gpoint ) 
+        cell.highlight = :word if cell.highlight != :wrong
+      end
     end
 
     def highlight_current
-      @grid.cell_at( @current.gpos ).highlight = :current
+      cell = @grid.cell_at( @current.gpos )
+      cell.highlight = :current if cell.highlight != :wrong
     end
 
     def unhighlight
       cells = @grid.word_cells( @current.number, @current.dir )
-      cells.each { |gpoint| @grid.cell_at( gpoint ).highlight = :none }
-      @grid.cell_at( @current.gpos ).highlight = :none
+      cells.each do |gpoint|
+        cell = @grid.cell_at( gpoint ) 
+        cell.highlight = :none if cell.highlight != :wrong
+      end
+      
+      cell = @grid.cell_at( @current.gpos )
+      cell.highlight = :none if cell.highlight != :wrong
     end
 
     def update_cell
@@ -101,8 +111,9 @@ module Crossword
       if @char.empty?
         empty_cell
       else
-        @grid.cell_at( @current.gpos ).user = @char
-
+        cell = @grid.cell_at( @current.gpos ) 
+        cell.user = @char
+        cell.highlight = @help_mode && cell.letter != cell.user ? :wrong : :word
         @grid.next_word_cell( @current )
       end
 
@@ -112,7 +123,9 @@ module Crossword
     def empty_cell
       cell_empty = @grid.cell_at( @current.gpos ).user.empty?
       @grid.prev_word_cell( @current ) if cell_empty
-      @grid.cell_at( @current.gpos ).user = ''
+      cell = @grid.cell_at( @current.gpos ) 
+      cell.user = ''
+      cell.highlight = :none
       @grid.prev_word_cell( @current ) unless cell_empty
     end
 
