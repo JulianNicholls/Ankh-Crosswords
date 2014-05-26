@@ -16,7 +16,7 @@ module Crossword
     attr_reader :width, :height, :font, :grid
 
     KEY_FUNCS = {
-      Gosu::KbEscape  =>  -> { close },
+      Gosu::KbEscape  =>  -> { close if @complete },
       Gosu::KbSpace   =>  -> { @position = @current.gpos },
       Gosu::KbTab     =>  -> { next_clue },
 
@@ -43,6 +43,8 @@ module Crossword
       @font       = ResourceLoader.fonts( self )
       @drawer     = Drawer.new( self )
       @help_mode  = false
+      @start_time = Time.now
+      @complete   = false
       
       initial_highlight
     end
@@ -74,7 +76,11 @@ module Crossword
     end
 
     private
-
+    
+    def current_cell
+      @grid.cell_at( @current.gpos )
+    end
+    
     def initial_highlight
       number    = @grid.first_clue( :across )
       cur_word  = @grid.word_cells( number, :across )
@@ -90,8 +96,7 @@ module Crossword
     end
 
     def highlight_current
-      cell = @grid.cell_at( @current.gpos )
-      cell.highlight = :current if cell.highlight != :wrong
+      current_cell.highlight = :current if current_cell.highlight != :wrong
     end
 
     def unhighlight
@@ -101,8 +106,7 @@ module Crossword
         cell.highlight = :none if cell.highlight != :wrong
       end
       
-      cell = @grid.cell_at( @current.gpos )
-      cell.highlight = :none if cell.highlight != :wrong
+      current_cell.highlight = :none if current_cell.highlight != :wrong
     end
 
     def update_cell
@@ -111,9 +115,9 @@ module Crossword
       if @char.empty?
         empty_cell
       else
-        cell = @grid.cell_at( @current.gpos ) 
-        cell.user = @char
-        cell.highlight = @help_mode && cell.letter != cell.user ? :wrong : :word
+        current_cell.user = @char
+        current_cell.highlight = 
+          @help_mode && current_cell.letter != current_cell.user ? :wrong : :none
         @grid.next_word_cell( @current )
       end
 
@@ -121,11 +125,10 @@ module Crossword
     end
 
     def empty_cell
-      cell_empty = @grid.cell_at( @current.gpos ).user.empty?
+      cell_empty = current_cell.user.empty?
       @grid.prev_word_cell( @current ) if cell_empty
-      cell = @grid.cell_at( @current.gpos ) 
-      cell.user = ''
-      cell.highlight = :none
+      current_cell.user = ''
+      current_cell.highlight = :none
       @grid.prev_word_cell( @current ) unless cell_empty
     end
 
@@ -254,15 +257,15 @@ end
 filename = ARGV[0] || '2014-4-22-LosAngelesTimes.puz'
 puz = PuzzleLoader.new( filename )
 
-puts "Size:  #{puz.width} x #{puz.height}"
-puts "Clues: #{puz.num_clues}"
-puts 'Scrambled!' if puz.scrambled?
-
-puts %(
-Title:      #{puz.title}
-Author:     #{puz.author}
-Copyright:  #{puz.copyright}
-)
+# puts "Size:  #{puz.width} x #{puz.height}"
+# puts "Clues: #{puz.num_clues}"
+# puts 'Scrambled!' if puz.scrambled?
+# 
+# puts %(
+# Title:      #{puz.title}
+# Author:     #{puz.author}
+# Copyright:  #{puz.copyright}
+# )
 
 cgrid = Crossword::Grid.new( puz.rows, puz.clues )
 
