@@ -8,19 +8,19 @@ different filename on the command line to load that instead.
 
 ## Keys and Mouse
 
-    A-Z       Fill in letter
+    A-Z         Fill in letter
 
-    Bksp      Delete content and move to the previous cell. If the current cell
-was already empty then the previous cell will be cleared instead.
+    Bksp        Delete content and move to the previous cell. If the current cell
+                was already empty then the previous cell will be cleared instead.
 
-    Spacebar  Swap between across and down
+    Spacebar    Swap between across and down
 
-    Tab       Move to the next clue
-    Shift-Tab Move to the previous clue
+    Tab         Move to the next clue
+    Shift-Tab   Move to the previous clue
 
-    F1        Swap help mode on and off, then incorrect letters are highlighted
+    F1          Swap help mode on and off, then incorrect letters are highlighted
 
-    Escape    Exit when complete
+    Escape      Exit when complete
 
 Click on a cell to highlight it. Clicking on the currently highlighted cell
 will swap between highlighting the current across or down word.
