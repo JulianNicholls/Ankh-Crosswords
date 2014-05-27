@@ -27,25 +27,94 @@ module Crossword
       end
     end
 
+    def clues( current )
+      across_point = Point.new( ACROSS_LEFT, MARGIN * 2 )
+      down_point   = Point.new( DOWN_LEFT, MARGIN * 2 )
+
+      clue_header( across_point, 'Across' )
+      clue_header( down_point, 'Down' )
+
+      clue_list_with_current( across_point, :across, current )
+      clue_list_with_current( down_point, :down, current )
+    end
+
     private
 
     def draw_cell( pos, cell )
       @window.draw_rectangle( pos.offset( 1, 1 ), CELL_SIZE.deflate( 2, 2 ),
                               1, BK_COLOURS[cell.highlight] )
 
-      draw_cell_number( pos, cell.number ) unless cell.number == 0
-      draw_cell_letter( pos, cell )        unless cell.user.empty?
+      cell_number( pos, cell.number ) unless cell.number == 0
+      cell_letter( pos, cell )        unless cell.user.empty?
     end
 
-    def draw_cell_number( pos, number )
+    def cell_number( pos, number )
       @window.font[:number].draw( number, pos.x + 2, pos.y + 1, 1, 1, 1, BLACK )
     end
 
-    def draw_cell_letter( pos, cell )
+    def cell_letter( pos, cell )
       cf     = @window.font[:cell]
       lpos   = pos.offset( cf.centred_in( cell.user, CELL_SIZE ) )
-      colour = cell.highlight == :wrong ? ERROR_FG : BLACK;
+      colour = cell.highlight == :wrong ? ERROR_FG : BLACK
       cf.draw( cell.user, lpos.x, lpos.y + 1, 1, 1, 1, colour )
+    end
+
+    def clue_header( pos, header )
+      hf = @window.font[:header]
+      hf.draw( header, pos.x, pos.y, 1, 1, 1, WHITE )
+
+      pos.move_by!( 0, hf.height )
+    end
+
+    # Render the clue list off screen first if it's the list with the current clue,
+    # then redraw it where asked, potentially not from the start if the current
+    # clue wouldn't be displayed.
+
+    def clue_list_with_current( pos, dir, current )
+      list = @window.grid.clues_of( dir )
+      current_list = current.dir == dir
+      skip = 0
+
+      if current_list
+        off_screen = pos.offset( @window.width, 0 )
+        skip = clue_list( off_screen, list, current_list, current.number )
+      end
+
+      clue_list( pos, list[skip..-1], current_list, current.number )
+    end
+
+    # Draw the list of clues, ensuring that the current one is on screen, and
+    # not at the extreme bottom
+
+    def clue_list( pos, list, current_list, number )
+      found = -1
+      shown = 0
+
+      list.each_with_index do |clue, idx|
+        is_current = current_list && number == clue.number
+        found = idx if is_current
+
+        lh = clue.draw( @window, pos, CLUE_COLUMN_WIDTH, is_current )
+        shown += 1
+
+        break if pos.y >= @window.height - (MARGIN + lh)
+      end
+
+      adjustment( list, current_list, shown, found )
+    end
+
+    def adjustment( list, current_list, shown, found )
+      # If it's not the current list, we just show the beginning
+      return 0 unless current_list
+
+      # If it's not there, show the end
+      return list.size - shown if found == -1
+
+      # If we're nearing the bottom, move it up a bit
+      return ((list.size - shown) / 2).floor if (shown - found) < 4
+
+      # Otherwise, everything's hunky-dory
+      0
     end
   end
 end
