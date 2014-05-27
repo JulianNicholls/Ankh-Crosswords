@@ -4,16 +4,14 @@ module Crossword
   class Grid
     # Hold the lists of clues
     class ClueList
+      attr_reader :clues
+
       def initialize
         @clues = []
       end
 
       def add( clue )
         @clues << clue
-      end
-
-      def all_clues
-        @clues
       end
 
       def across_clues
@@ -24,16 +22,16 @@ module Crossword
         @clues.select { |c| c.direction == :down }
       end
 
-      def clues( direction )
+      def clues_of( direction )
         direction == :across ? across_clues : down_clues
       end
 
       def first_clue( direction )
-        clues( direction ).first.number
+        clues_of( direction ).first.number
       end
 
       def next_clue( start, direction )
-        list = clues( direction )
+        list = clues_of( direction )
 
         idx = list.index { |clue| clue.number >= start }
 
@@ -43,7 +41,7 @@ module Crossword
       end
 
       def prev_clue( start, direction )
-        list = clues( direction )
+        list = clues_of( direction )
 
         idx = list.rindex { |clue| clue.number <= start }
 
@@ -52,8 +50,8 @@ module Crossword
         list[[idx - 1, 0].max].number
       end
 
-      def cell_number( num, direction )
-        clue  = clues( direction ).find { |c| c.number == num }
+      def cell_pos( num, direction )
+        clue  = clues_of( direction ).find { |c| c.number == num }
         return clue.point unless clue.nil?
 
         fail "Didn't find #{num} #{direction}"

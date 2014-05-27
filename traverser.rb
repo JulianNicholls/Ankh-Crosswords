@@ -17,7 +17,7 @@ module Crossword
           number = grid.first_clue( state.dir )
         end
 
-        state.new_word( number, grid.cell_number( number, state.dir ) )
+        state.new_word( number, grid.cell_pos( number, state.dir ) )
       end
 
       # Work out the previous word cell, which could be the end of the previous word
@@ -31,7 +31,7 @@ module Crossword
 
         return if number == state.number    # Already at first
 
-        state.new_word( number, grid.cell_number( number, state.dir ) )
+        state.new_word( number, grid.cell_pos( number, state.dir ) )
 
         # Find the end of the previous word
 

@@ -39,7 +39,7 @@ module Crossword
     def draw_simple( game, pos, text )
       font = game.font[:clue]
 
-      font.draw( text, pos.x + 18, pos.y, 2, 1, 1, WHITE )
+      font.draw( text, pos.x + 21, pos.y, 2, 1, 1, WHITE )
       pos.move_by!( 0, font.height + 1 )
     end
 

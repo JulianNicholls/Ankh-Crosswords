@@ -7,7 +7,8 @@ module Crossword
   class Grid
     extend Forwardable
 
-    def_delegators :@cluelist, :all_clues, :across_clues, :down_clues, :cell_number
+    def_delegators :@cluelist, :clues, :clues_of, :across_clues, :down_clues
+    def_delegators :@cluelist, :cell_pos
     def_delegators :@cluelist, :first_clue, :next_clue, :prev_clue
     def_delegators :@traverser, :cell_down, :cell_up, :cell_right, :cell_left
     def_delegators :@traverser, :next_word_cell, :prev_word_cell
@@ -41,7 +42,7 @@ module Crossword
     end
 
     def word_cells( number, direction )
-      gpoint = @cluelist.cell_number( number, direction )
+      gpoint = @cluelist.cell_pos( number, direction )
       word   = [gpoint]
 
       loop do
@@ -56,24 +57,24 @@ module Crossword
     def word_num_from_pos( pos, direction )
       return 0 if cell_at( pos ).blank?
 
-      @cluelist.clues( direction ).each do |clue|
+      @cluelist.clues_of( direction ).each do |clue|
         cells = word_cells( clue.number, direction )
         return clue.number if cells.include? pos
       end
 
       fail "No word from #{pos}"
     end
-    
+
     def completed
       each_with_position do |cell, _|
         next if cell.blank?
         return false  if cell.user == ''
         return :wrong if cell.user != cell.letter
       end
-      
-      return :complete    # All present and correct   
+
+      :complete    # All present and correct
     end
-    
+
     private
 
     def build_grid( raw_rows )
