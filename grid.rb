@@ -68,6 +68,7 @@ module Crossword
     def completed
       each_with_position do |cell, _|
         next if cell.blank?
+        
         return false  if cell.user == ''
         return :wrong if cell.user != cell.letter
       end
@@ -111,18 +112,24 @@ module Crossword
     # Represent one cell in the crossword with its solution letter, user entry,
     # possible number, and highlight state.
     class Cell
-      attr_reader :letter
-      attr_accessor :user, :number, :highlight
+      attr_reader :letter, :user, :error
+      attr_accessor :number, :highlight
 
       def initialize( letter )
         @letter = letter
         @user   = ''
         @number = 0
         @highlight = :none
+        @error  = false
       end
 
       def blank?
         @letter == '.'
+      end
+      
+      def user=( ltr )
+        @user  = ltr
+        @error = user != '' && letter != user
       end
     end
   end

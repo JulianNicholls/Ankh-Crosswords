@@ -18,7 +18,8 @@ module Crossword
     KEY_FUNCS = {
       Gosu::KbEscape  =>  -> { close if @complete },
       Gosu::KbSpace   =>  -> { @position = @current.gpos },
-      Gosu::KbTab     =>  -> { next_clue },
+      Gosu::KbTab     =>  -> { handle_tab },
+      Gosu::KbF1      =>  -> { @help_mode = !@help_mode },
 
       Gosu::KbDown    =>  -> { @position = @grid.cell_down( @current.gpos ) },
       Gosu::KbUp      =>  -> { @position = @grid.cell_up( @current.gpos ) },
@@ -60,7 +61,7 @@ module Crossword
 
     def draw
       @drawer.background
-      @drawer.grid
+      @drawer.grid( @help_mode )
       @drawer.clues( @current )
     end
 
@@ -70,8 +71,10 @@ module Crossword
       char = button_id_to_char( btn_id )
       @char = char.upcase unless char.nil? || !char.between?( 'a', 'z' )
       @char = '' if btn_id == Gosu::KbBackspace
+      
+      puts "button_down: #{btn_id}"
     end
-
+    
     private
 
     def current_cell
@@ -88,22 +91,21 @@ module Crossword
       cells = @grid.word_cells( @current.number, @current.dir )
       cells.each do |gpoint|
         cell = @grid.cell_at( gpoint )
-        cell.highlight = :word if cell.highlight != :wrong
+        cell.highlight = :word
       end
     end
 
     def highlight_current
-      current_cell.highlight = :current if current_cell.highlight != :wrong
+      current_cell.highlight = :current
     end
 
     def unhighlight
       cells = @grid.word_cells( @current.number, @current.dir )
       cells.each do |gpoint|
-        cell = @grid.cell_at( gpoint )
-        cell.highlight = :none if cell.highlight != :wrong
+        @grid.cell_at( gpoint ).highlight = :none
       end
 
-      current_cell.highlight = :none if current_cell.highlight != :wrong
+      current_cell.highlight = :none
     end
 
     def update_cell
@@ -113,12 +115,18 @@ module Crossword
         empty_cell
       else
         current_cell.user = @char
-        current_cell.highlight =
-          @help_mode && current_cell.letter != current_cell.user ? :wrong : :none
+        set_complete
         @grid.next_word_cell( @current )
       end
 
       @char = nil
+    end
+    
+    def set_complete
+      case @grid.completed
+        when :completed   then  @complete  = true
+        when :wrong       then  @help_mode = true
+      end
     end
 
     def empty_cell
@@ -167,10 +175,15 @@ module Crossword
       end
     end
 
-    def next_clue
+    def handle_tab
       unhighlight
-
-      number = @grid.next_clue( @current.number, @current.dir )
+      
+      if button_down?( Gosu::KbLeftShift ) || button_down?( Gosu::KbRightShift )
+        number = @grid.prev_clue( @current.number, @current.dir )
+      else
+        number = @grid.next_clue( @current.number, @current.dir )
+      end
+      
       @current.new_word( number, @grid.cell_pos( number, @current.dir ) )
     end
   end
