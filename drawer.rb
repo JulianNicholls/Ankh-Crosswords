@@ -10,12 +10,19 @@ module Crossword
     end
 
     def background
+      # All White
       origin = Point.new( 0, 0 )
       size   = Size.new( @window.width, @window.height )
       @window.draw_rectangle( origin, size, 0, WHITE )
 
+      # Clue Area
       origin.move_by!( MARGIN, MARGIN )
-      size.deflate!( MARGIN * 2, MARGIN * 2 )
+      size.deflate!( @window.grid.size.width + MARGIN * 5, MARGIN * 2 )
+      @window.draw_rectangle( origin, size, 0, BLACK )
+
+      # Grid Area
+      origin = GRID_ORIGIN.offset( -MARGIN, -MARGIN )
+      size   = @window.grid.size.inflate( MARGIN * 2, MARGIN * 2 )
       @window.draw_rectangle( origin, size, 0, BLACK )
     end
 
@@ -42,11 +49,11 @@ module Crossword
 
     def cell( pos, cell, show_errors )
       bk = BK_COLOURS[cell.highlight]
-      
+
       if cell.highlight == :none && cell.error && show_errors
         bk = BK_COLOURS[:wrong]
       end
-      
+
       @window.draw_rectangle( pos.offset( 1, 1 ), CELL_SIZE.deflate( 2, 2 ), 1, bk )
 
       cell_number( pos, cell.number )       unless cell.number == 0
