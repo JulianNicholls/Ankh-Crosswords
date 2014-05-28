@@ -5,6 +5,7 @@ require 'traverser'
 module Crossword
   # Represent a whole crossword grid
   class Grid
+    include Constants
     extend Forwardable
 
     def_delegators :@cluelist, :clues, :clues_of, :across_clues, :down_clues
@@ -13,13 +14,15 @@ module Crossword
     def_delegators :@traverser, :cell_down, :cell_up, :cell_right, :cell_left
     def_delegators :@traverser, :next_word_cell, :prev_word_cell
 
-    attr_reader :width, :height
+    attr_reader :width, :height, :size
 
     # raw rows come in as an array of strings with one character per cell,
     # '.' for blank
 
     def initialize( raw_rows, clues )
       @width, @height = raw_rows[0].size, raw_rows.size
+      @size           = Size.new( width * CELL_SIZE.width,
+                                  height * CELL_SIZE.height )
       @cluelist       = ClueList.new
       @traverser      = Traverser.new( self )
 
@@ -68,7 +71,7 @@ module Crossword
     def completed
       each_with_position do |cell, _|
         next if cell.blank?
-        
+
         return false  if cell.user == ''
         return :wrong if cell.user != cell.letter
       end
@@ -126,7 +129,7 @@ module Crossword
       def blank?
         @letter == '.'
       end
-      
+
       def user=( ltr )
         @user  = ltr
         @error = user != '' && letter != user
