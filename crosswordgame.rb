@@ -31,8 +31,8 @@ module Crossword
 
     def initialize( grid, title )
       @grid   = grid
-      @width  = BASE_WIDTH + grid.width * CELL_SIZE.width
-      @height = BASE_HEIGHT + grid.height * CELL_SIZE.height
+      @width  = BASE_WIDTH  + grid.size.width
+      @height = BASE_HEIGHT + grid.size.height
 
       super( @width, @height, false, 100 )
 
@@ -71,10 +71,8 @@ module Crossword
       char = button_id_to_char( btn_id )
       @char = char.upcase unless char.nil? || !char.between?( 'a', 'z' )
       @char = '' if btn_id == Gosu::KbBackspace
-      
-      puts "button_down: #{btn_id}"
     end
-    
+
     private
 
     def current_cell
@@ -121,11 +119,11 @@ module Crossword
 
       @char = nil
     end
-    
+
     def set_complete
       case @grid.completed
-        when :completed   then  @complete  = true
-        when :wrong       then  @help_mode = true
+      when :completed   then  @complete  = true
+      when :wrong       then  @help_mode = true
       end
     end
 
@@ -177,13 +175,13 @@ module Crossword
 
     def handle_tab
       unhighlight
-      
+
       if button_down?( Gosu::KbLeftShift ) || button_down?( Gosu::KbRightShift )
         number = @grid.prev_clue( @current.number, @current.dir )
       else
         number = @grid.next_clue( @current.number, @current.dir )
       end
-      
+
       @current.new_word( number, @grid.cell_pos( number, @current.dir ) )
     end
   end
