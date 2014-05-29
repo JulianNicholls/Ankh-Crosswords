@@ -1,6 +1,8 @@
 require 'gridpoint'
 require 'cluelist'
 require 'traverser'
+require 'cell'
+require 'storer'
 
 module Crossword
   # Represent a whole crossword grid
@@ -73,12 +75,16 @@ module Crossword
         next if cell.blank?
 
         return false  if cell.user == ''
-        return :wrong if cell.user != cell.letter
+        return :wrong if cell.error
       end
 
       :complete    # All present and correct
     end
 
+    def save( filename, title )
+      Storer.save( filename, title, self )
+    end
+    
     private
 
     def build_grid( raw_rows )
@@ -110,30 +116,6 @@ module Crossword
     def needs_down_number?( gpoint )
       (gpoint.row == 0 || cell_at( gpoint.offset( -1, 0 ) ).blank?) &&
       gpoint.row < @height - 1 && !cell_at( gpoint.offset( 1, 0 ) ).blank?
-    end
-
-    # Represent one cell in the crossword with its solution letter, user entry,
-    # possible number, and highlight state.
-    class Cell
-      attr_reader :letter, :user, :error
-      attr_accessor :number, :highlight
-
-      def initialize( letter )
-        @letter = letter
-        @user   = ''
-        @number = 0
-        @highlight = :none
-        @error  = false
-      end
-
-      def blank?
-        @letter == '.'
-      end
-
-      def user=( ltr )
-        @user  = ltr
-        @error = user != '' && letter != user
-      end
     end
   end
 end
