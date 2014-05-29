@@ -16,7 +16,7 @@ module Crossword
     attr_reader :width, :height, :font, :grid
 
     KEY_FUNCS = {
-      Gosu::KbEscape  =>  -> { close if @complete },
+      Gosu::KbEscape  =>  -> { handle_escape },
       Gosu::KbSpace   =>  -> { @position = @current.gpos },
       Gosu::KbTab     =>  -> { handle_tab },
       Gosu::KbF1      =>  -> { @help_mode = !@help_mode },
@@ -173,6 +173,12 @@ module Crossword
       end
     end
 
+    def handle_escape
+      grid.save( 'test.ankh', caption ) if !@complete
+      
+      close
+    end
+    
     def handle_tab
       unhighlight
 
