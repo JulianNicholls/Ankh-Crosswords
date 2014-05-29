@@ -5,6 +5,8 @@ module Crossword
 
     attr_reader :direction, :number, :text, :point, :region
 
+    NUMBER_WIDTH = 21
+    
     def initialize( direction, number, text, point, region = nil )
       @direction  = direction
       @number     = number
@@ -19,13 +21,17 @@ module Crossword
 
       game.font[:clue].draw( number, pos.x, pos.y, 2, 1, 1, WHITE )
 
-      draw_wrapped( game, pos, text, (size.width / max_width).ceil )
+      draw_wrapped( game, pos, text, (size.width / (max_width - NUMBER_WIDTH)).ceil )
 
       @region = Region.new( tlc, Size.new( max_width, pos.y - tlc.y ) )
 
       @region.draw( game, 1, CLUE_LIGHT ) if selected
 
       size.height + 1
+    end
+    
+    def add_length( len )
+      @text += " (#{len})"
     end
 
     private
@@ -39,7 +45,7 @@ module Crossword
     def draw_simple( game, pos, text )
       font = game.font[:clue]
 
-      font.draw( text, pos.x + 21, pos.y, 2, 1, 1, WHITE )
+      font.draw( text, pos.x + NUMBER_WIDTH, pos.y, 2, 1, 1, WHITE )
       pos.move_by!( 0, font.height + 1 )
     end
 

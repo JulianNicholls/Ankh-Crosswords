@@ -10,8 +10,10 @@ module Crossword
         @clues = []
       end
 
-      def add( clue )
+      # Add the clue, then find its length and add that on
+      def add( clue, grid )
         @clues << clue
+        clue.add_length( grid.word_cells( clue.number, clue.direction ).size )
       end
 
       def across_clues

@@ -21,7 +21,7 @@ module Crossword
       @window.draw_rectangle( origin, size, 0, BLACK )
 
       # Grid Area
-      origin = GRID_ORIGIN.offset( -MARGIN, -MARGIN )
+      origin = GRID_ORIGIN.offset( -1 * MARGIN, -1 * MARGIN )
       size   = @window.grid.size.inflate( MARGIN * 2, MARGIN * 2 )
       @window.draw_rectangle( origin, size, 0, BLACK )
     end
@@ -75,7 +75,7 @@ module Crossword
       hf = @window.font[:header]
       hf.draw( header, pos.x, pos.y, 1, 1, 1, WHITE )
 
-      pos.move_by!( 0, hf.height )
+      pos.move_by!( 0, hf.height + 1 )
     end
 
     # Render the clue list off screen first if it's the list with the current clue,

@@ -95,8 +95,8 @@ module Crossword
 
         nan, ndn = needs_across_number?( gpoint ), needs_down_number?( gpoint )
 
-        @cluelist.add Clue.new( :across, number, clues.next, gpoint ) if nan
-        @cluelist.add Clue.new( :down,   number, clues.next, gpoint ) if ndn
+        @cluelist.add( Clue.new( :across, number, clues.next, gpoint ), self ) if nan
+        @cluelist.add( Clue.new( :down,   number, clues.next, gpoint ), self ) if ndn
 
         cell.number = (number += 1) - 1 if nan || ndn
       end
