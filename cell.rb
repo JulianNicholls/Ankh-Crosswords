@@ -11,8 +11,8 @@ module Crossword
         l, u, n = line.split ','
         
         me = new( l )
-        me.number = n
-        me.user = n
+        me.number = n.to_i unless n.empty?
+        me.user = u
         
         me
       end

@@ -2,7 +2,6 @@ require 'gridpoint'
 require 'cluelist'
 require 'traverser'
 require 'cell'
-require 'storer'
 
 module Crossword
   # Represent a whole crossword grid
@@ -13,25 +12,60 @@ module Crossword
     def_delegators :@cluelist, :clues, :clues_of, :across_clues, :down_clues
     def_delegators :@cluelist, :cell_pos
     def_delegators :@cluelist, :first_clue, :next_clue, :prev_clue
+    
     def_delegators :@traverser, :cell_down, :cell_up, :cell_right, :cell_left
     def_delegators :@traverser, :next_word_cell, :prev_word_cell
 
     attr_reader :width, :height, :size
 
+    def self.from_ankh_file( file )
+      width, height = file.gets.strip.split( ',' ).map( &:to_i )
+#      puts "FAF: #{width} x #{height}"
+      
+      this = new
+      this.set_dimensions( width, height )
+#      puts "FAF - this: #{this.width} x #{this.height} - #{this.size}"
+      (width * height).times do
+        line = file.gets.strip
+        this.add_cell( Cell.from_text line )
+      end
+      
+      while line = file.gets
+        this.add_clue( Clue.from_text line.strip )
+      end
+      
+      this
+    end
+    
     # raw rows come in as an array of strings with one character per cell,
     # '.' for blank
 
-    def initialize( raw_rows, clues )
-      @width, @height = raw_rows[0].size, raw_rows.size
-      @size           = Size.new( width * CELL_SIZE.width,
-                                  height * CELL_SIZE.height )
+    def initialize( raw_rows = nil, clues = nil )
       @cluelist       = ClueList.new
       @traverser      = Traverser.new( self )
+      @grid           = []
 
+      return if raw_rows.nil?
+      
+      set_dimensions( raw_rows[0].size, raw_rows.size )
       build_grid( raw_rows )
       add_numbers_and_clues( clues.to_enum )
     end
+    
+    def set_dimensions( width, height )
+      @width, @height = width, height
+      @size           = Size.new( width * CELL_SIZE.width,
+                                  height * CELL_SIZE.height )
+    end
+    
+    def add_cell( cell )
+      @grid << cell
+    end
 
+    def add_clue( clue )
+      @cluelist.add( clue, self )
+    end
+    
     def cell_at( row, col = nil )
       if row.respond_to? :row
         @grid[row.row * @width + row.col]
@@ -81,16 +115,10 @@ module Crossword
       :complete    # All present and correct
     end
 
-    def save( filename, title )
-      Storer.save( filename, title, self )
-    end
-    
     private
 
     def build_grid( raw_rows )
-      @grid = []
-
-      raw_rows.each { |r| r.each_char { |c| @grid << Cell.new( c ) } }
+      raw_rows.each { |r| r.each_char { |c| add_cell Cell.new( c ) } }
     end
 
     def add_numbers_and_clues( clues )
@@ -101,8 +129,8 @@ module Crossword
 
         nan, ndn = needs_across_number?( gpoint ), needs_down_number?( gpoint )
 
-        @cluelist.add( Clue.new( :across, number, clues.next, gpoint ), self ) if nan
-        @cluelist.add( Clue.new( :down,   number, clues.next, gpoint ), self ) if ndn
+        add_clue( Clue.new( :across, number, clues.next, gpoint ) ) if nan
+        add_clue( Clue.new( :down,   number, clues.next, gpoint ) ) if ndn
 
         cell.number = (number += 1) - 1 if nan || ndn
       end

@@ -10,8 +10,8 @@ module Crossword
     def self.from_text( line )
       dir, num, t, row, col = line.split ';'
       fail "Clue loading problem:\n##{t}#" if t[0] != '<' || t[-1] != '>'
-      text  = t[1,-1] # Remove <>
-      new( dir.to_sym, num.to_i, text, GridPoint.new( row, col ) )
+      text = t[1..-2] # Remove <>
+      new( dir.to_sym, num.to_i, text, GridPoint.new( row.to_i, col.to_i ) )
     end
     
     def initialize( direction, number, text, point, region = nil )
@@ -42,7 +42,7 @@ module Crossword
     end
 
     def to_text
-      "#{direction};#{number};<#{text}>;#{point.row};#{point.col}"
+      "#{direction};#{number};<#{text.sub( /\s+\(\d+\)$/, '' )}>;#{point.row};#{point.col}"
     end
     
     private
