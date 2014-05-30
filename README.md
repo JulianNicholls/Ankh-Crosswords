@@ -9,6 +9,8 @@ Give it a different filename on the command line to load that instead.
 When a puzzle is loaded, if there is a game in progress (.ankh) file, then 
 that will be loaded to allow continuation.
 
+When the grid is correctly complete, the time is displayed.
+
 ## Keys and Mouse
 
     A-Z         Fill in letter

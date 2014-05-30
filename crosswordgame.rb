@@ -62,7 +62,7 @@ module Crossword
       @drawer.background
       @drawer.grid( @help_mode )
       @drawer.clues( @current )
-      
+
       @overlay.draw if @overlay
     end
 
@@ -129,7 +129,7 @@ module Crossword
       when :complete
         @complete = true
         @overlay  = CompleteOverlay.new( self )
-        
+
       when :wrong then  @help_mode = true
       end
     end
