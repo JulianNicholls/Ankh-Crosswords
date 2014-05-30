@@ -3,8 +3,11 @@
 Player for .puz files, used for crosswords from newspapers such as the L.A. 
 Times.
 
-At the moment it loads and displays the LA Times from 2014-04-22. Give it a 
-different filename on the command line to load that instead.
+At the moment it loads and displays the LA Times from 2014-04-22 by default. 
+Give it a different filename on the command line to load that instead.
+
+When a puzzle is loaded, if there is a game in progress (.ankh) file, then 
+that will be loaded to allow continuation.
 
 ## Keys and Mouse
 
@@ -15,12 +18,12 @@ different filename on the command line to load that instead.
 
     Spacebar    Swap between across and down
 
-    Tab         Move to the next clue
-    Shift-Tab   Move to the previous clue
+    Tab         Move to the next word in the same direction
+    Shift-Tab   Move to the previous word in the same direction
 
     F1          Swap help mode on and off, then incorrect letters are highlighted
 
-    Escape      Exit when complete
+    Escape      Exit, saving progress, when not complete
 
 Click on a cell to highlight it. Clicking on the currently highlighted cell
 will swap between highlighting the current across or down word.
@@ -39,6 +42,8 @@ automatically.
 - [x] Allow for letter entry
 - [x] Highlight the next cell after entering a letter
 - [x] Highlight the next word after ending the current one
+- [x] Save progress
+- [x] Load progress
 - [ ] Add some tests for the loader
 - [ ] Handle scrambled puzzles
 
