@@ -42,11 +42,8 @@ module Crossword
 
       @font       = ResourceLoader.fonts( self )
       @drawer     = Drawer.new( self )
-      @help_mode  = false
-      @start_time = Time.now - @game.elapsed
-      @complete   = false
 
-      initial_highlight
+      initial_state
     end
 
     def needs_cursor?
@@ -57,8 +54,7 @@ module Crossword
       update_cell    unless @char.nil?
       update_current unless @position.nil?
 
-      highlight_word
-      highlight_current
+      highlight
     end
 
     def draw
@@ -77,31 +73,34 @@ module Crossword
 
     private
 
+    def initial_state
+      @help_mode  = false
+      @start_time = Time.now - @game.elapsed
+      @complete   = false
+
+      number    = @grid.first_clue( :across )
+      pos       = @grid.cell_pos( number, :across )
+      @current  = CurrentState.new( pos, number, :across )
+    end
+
     def current_cell
       @grid.cell_at( @current.gpos )
     end
 
-    def initial_highlight
-      number    = @grid.first_clue( :across )
-      cur_word  = @grid.word_cells( number, :across )
-      @current  = CurrentState.new( cur_word[0], number, :across )
+    def current_word
+      @grid.word_cells( @current.number, @current.dir )
     end
 
-    def highlight_word
-      cells = @grid.word_cells( @current.number, @current.dir )
-      cells.each do |gpoint|
-        cell = @grid.cell_at( gpoint )
-        cell.highlight = :word
+    def highlight
+      current_word.each do |gpoint|
+        @grid.cell_at( gpoint ).highlight = :word
       end
-    end
 
-    def highlight_current
       current_cell.highlight = :current
     end
 
     def unhighlight
-      cells = @grid.word_cells( @current.number, @current.dir )
-      cells.each do |gpoint|
+      current_word.each do |gpoint|
         @grid.cell_at( gpoint ).highlight = :none
       end
 
@@ -147,6 +146,8 @@ module Crossword
       @position = nil
     end
 
+    # Clicked out of the grid, probably on a clue
+
     def current_from_clue
       mouse_pos = Point.new( mouse_x, mouse_y )
 
@@ -162,6 +163,8 @@ module Crossword
       @position = nil
     end
 
+    # Clicked inside the grid
+
     def current_from_cell
       new_num  = @grid.word_num_from_pos( @position, @current.dir )
 
@@ -171,16 +174,18 @@ module Crossword
           new_num = @grid.word_num_from_pos( @position, @current.dir )
         end
 
-        @current.gpos, @current.number = @position, new_num
+        @current.new_word( new_num, @position )
       end
     end
 
     def handle_escape
       @game.elapsed = Time.now - @start_time
-      GameRepository.save_ankh_file( @game ) if !@complete
+      GameRepository.save_ankh_file( @game ) unless @complete
 
       close
     end
+
+    # Move to the next or previous clue
 
     def handle_tab
       unhighlight
