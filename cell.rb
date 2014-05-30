@@ -9,14 +9,14 @@ module Crossword
 
       def self.from_text( line )
         l, u, n = line.split ','
-        
+
         me = new( l )
         me.number = n.to_i unless n.empty?
         me.user = u
-        
+
         me
       end
-      
+
       def initialize( letter )
         @letter = letter
         @user   = ''
@@ -33,7 +33,7 @@ module Crossword
         @user  = ltr
         @error = user != '' && letter != user
       end
-      
+
       def to_text
         "#{letter},#{user},#{number}"
       end
