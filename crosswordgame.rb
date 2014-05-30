@@ -8,13 +8,14 @@ require 'puzloader'
 require 'grid'
 require 'drawer'
 require 'gamerepo'
+require 'overlay'
 
 module Crossword
   # Crossword!
   class Puzzle < Gosu::Window
     include Constants
 
-    attr_reader :width, :height, :font, :grid
+    attr_reader :width, :height, :font, :grid, :start_time
 
     KEY_FUNCS = {
       Gosu::KbEscape  =>  -> { handle_escape },
@@ -61,6 +62,8 @@ module Crossword
       @drawer.background
       @drawer.grid( @help_mode )
       @drawer.clues( @current )
+      
+      @overlay.draw if @overlay
     end
 
     def button_down( btn_id )
@@ -123,8 +126,11 @@ module Crossword
 
     def set_complete
       case @grid.completed
-      when :completed   then  @complete  = true
-      when :wrong       then  @help_mode = true
+      when :complete
+        @complete = true
+        @overlay  = CompleteOverlay.new( self )
+        
+      when :wrong then  @help_mode = true
       end
     end
 
