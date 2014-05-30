@@ -12,7 +12,7 @@ module Crossword
     def_delegators :@cluelist, :clues, :clues_of, :across_clues, :down_clues
     def_delegators :@cluelist, :cell_pos
     def_delegators :@cluelist, :first_clue, :next_clue, :prev_clue
-    
+
     def_delegators :@traverser, :cell_down, :cell_up, :cell_right, :cell_left
     def_delegators :@traverser, :next_word_cell, :prev_word_cell
 
@@ -20,23 +20,19 @@ module Crossword
 
     def self.from_ankh_file( file )
       width, height = file.gets.strip.split( ',' ).map( &:to_i )
-#      puts "FAF: #{width} x #{height}"
-      
+
       this = new
       this.set_dimensions( width, height )
-#      puts "FAF - this: #{this.width} x #{this.height} - #{this.size}"
-      (width * height).times do
-        line = file.gets.strip
-        this.add_cell( Cell.from_text line )
-      end
-      
-      while line = file.gets
+
+      (width * height).times { this.add_cell( Cell.from_text file.gets.strip ) }
+
+      until (line = file.gets).nil?
         this.add_clue( Clue.from_text line.strip )
       end
-      
+
       this
     end
-    
+
     # raw rows come in as an array of strings with one character per cell,
     # '.' for blank
 
@@ -46,18 +42,18 @@ module Crossword
       @grid           = []
 
       return if raw_rows.nil?
-      
+
       set_dimensions( raw_rows[0].size, raw_rows.size )
       build_grid( raw_rows )
       add_numbers_and_clues( clues.to_enum )
     end
-    
+
     def set_dimensions( width, height )
       @width, @height = width, height
       @size           = Size.new( width * CELL_SIZE.width,
                                   height * CELL_SIZE.height )
     end
-    
+
     def add_cell( cell )
       @grid << cell
     end
@@ -65,18 +61,17 @@ module Crossword
     def add_clue( clue )
       @cluelist.add( clue, self )
     end
-    
-    def cell_at( row, col = nil )
-      if row.respond_to? :row
-        @grid[row.row * @width + row.col]
-      else
-        @grid[row * @width + col]
-      end
+
+    def cell_at( pos )
+      @grid[pos.row * @width + pos.col]
     end
 
     def each_with_position
       height.times do |row|
-        width.times { |col| yield cell_at( row, col ), GridPoint.new( row, col ) }
+        width.times do |col|
+          pos = GridPoint.new( row, col )
+          yield cell_at( pos ), pos
+        end
       end
     end
 
