@@ -9,8 +9,65 @@ require 'grid'
 require 'drawer'
 
 module Crossword
+  # Load everything from file
+
+  class Game < Struct.new( :filename, :grid, :title, :elapsed )
+  end
+
+  class GameRepository
+    def self.load( filename )
+      # First attempt to load a game in progress
+      game = load_ankh_file( filename )
+      return game unless game.nil?
+
+      puz  = PuzzleLoader.new( filename )
+      grid = Crossword::Grid.new( puz.rows, puz.clues )
+
+      # puts "Size:  #{puz.width} x #{puz.height}"
+      # puts "Clues: #{puz.num_clues}"
+      # puts 'Scrambled!' if puz.scrambled?
+      #
+      # puts %(
+      # Title:      #{puz.title}
+      # Author:     #{puz.author}
+      # Copyright:  #{puz.copyright}
+      # )
+
+      Game.new( filename, grid, "#{puz.title} - #{puz.author}", 0 )
+    end
+
+    def self.load_ankh_file( filename )
+      ankh_filename = filename.sub( /\.[^\.]+\z/, '.ankh' )
+      puts "Ankh file: #{ankh_filename}"
+
+      return nil unless File.exist? ankh_filename
+
+      puts "Load Ankh File instead"
+      open( ankh_filename, 'r' ) do |file|
+        title = file.gets.chomp
+        elapsed = file.gets.chomp.to_f
+        grid = Grid.from_ankh_file( file )
+      end
+      
+      Game.new( filename, grid, title, elapsed )
+    end
+    
+    def self.save_ankh_file( game )
+      ankh_filename = game.filename.sub( /\.[^\.]+\z/, '.ankh' )
+      
+      open( ankh_filename, 'w' ) do |file|
+        file.puts game.title
+        file.puts game.elapsed,floor
+        file.puts "#{game.grid.width},#{game.grid.height}"
+        game.grid.each_with_position { |cell, _| file.puts cell.to_text }
+        game.grid.clues.each { |clue| file.puts clue.to_text }
+      end
+    end
+    
+  end
+
   # Crossword!
-  class Game < Gosu::Window
+  class Puzzle < Gosu::Window
     include Constants
 
     attr_reader :width, :height, :font, :grid
@@ -29,19 +86,20 @@ module Crossword
       Gosu::MsLeft    =>  -> { @position = GridPoint.from_xy( mouse_x, mouse_y ) }
     }
 
-    def initialize( grid, title )
-      @grid   = grid
+    def initialize( filename )
+      @game   = GameRepository.load( filename )
+      @grid   = @game.grid
       @width  = BASE_WIDTH  + grid.size.width
       @height = BASE_HEIGHT + grid.size.height
 
       super( @width, @height, false, 100 )
 
-      self.caption = "Ankh #{title}"
+      self.caption = "Ankh #{@game.title}"
 
       @font       = ResourceLoader.fonts( self )
       @drawer     = Drawer.new( self )
       @help_mode  = false
-      @start_time = Time.now
+      @start_time = Time.now - @game.elapsed
       @complete   = false
 
       initial_highlight
@@ -174,11 +232,12 @@ module Crossword
     end
 
     def handle_escape
-      grid.save( 'test.ankh', caption ) if !@complete
-      
+      @game.elapsed = Time.now - @start_time
+      GameRepository.save_ankh_file( @game ) if !@complete
+
       close
     end
-    
+
     def handle_tab
       unhighlight
 
@@ -214,18 +273,5 @@ module Crossword
 end
 
 filename = ARGV[0] || '2014-4-22-LosAngelesTimes.puz'
-puz = PuzzleLoader.new( filename )
 
-# puts "Size:  #{puz.width} x #{puz.height}"
-# puts "Clues: #{puz.num_clues}"
-# puts 'Scrambled!' if puz.scrambled?
-#
-# puts %(
-# Title:      #{puz.title}
-# Author:     #{puz.author}
-# Copyright:  #{puz.copyright}
-# )
-
-cgrid = Crossword::Grid.new( puz.rows, puz.clues )
-
-Crossword::Game.new( cgrid, "#{puz.title} - #{puz.author}" ).show
+Crossword::Puzzle.new( filename ).show

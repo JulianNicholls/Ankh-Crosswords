@@ -2,7 +2,6 @@ require 'gridpoint'
 require 'cluelist'
 require 'traverser'
 require 'cell'
-require 'storer'
 
 module Crossword
   # Represent a whole crossword grid
@@ -13,11 +12,17 @@ module Crossword
     def_delegators :@cluelist, :clues, :clues_of, :across_clues, :down_clues
     def_delegators :@cluelist, :cell_pos
     def_delegators :@cluelist, :first_clue, :next_clue, :prev_clue
+    
     def_delegators :@traverser, :cell_down, :cell_up, :cell_right, :cell_left
     def_delegators :@traverser, :next_word_cell, :prev_word_cell
 
     attr_reader :width, :height, :size
 
+    def self.from_ankh_file( file )
+      width, height = file.gets.chomp.split( ',' ).map( &:to_i )
+      puts "FAF: #{width} x #{height}"
+    end
+    
     # raw rows come in as an array of strings with one character per cell,
     # '.' for blank
 
@@ -81,10 +86,6 @@ module Crossword
       :complete    # All present and correct
     end
 
-    def save( filename, title )
-      Storer.save( filename, title, self )
-    end
-    
     private
 
     def build_grid( raw_rows )
