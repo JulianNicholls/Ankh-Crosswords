@@ -49,3 +49,9 @@ automatically.
 - [ ] Add some tests for the loader
 - [ ] Handle scrambled puzzles
 
+## Acknowledged Copyrights
+
+The background Ankh image comes from [Icon Archive](www.iconarchive.com) 
+and was designed by [DesgnBolts](http://www.designbolts.com/) 
+
+

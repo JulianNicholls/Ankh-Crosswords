@@ -19,6 +19,7 @@ module Crossword
     ACROSS_LEFT = MARGIN * 2
     DOWN_LEFT   = ACROSS_LEFT + MARGIN * 2 + CLUE_COLUMN_WIDTH
 
+    BACKGROUND  = Gosu::Color.new( 0xff995410 )   # Brown
     WHITE       = Gosu::Color.new( 0xffffffff )
     BLACK       = Gosu::Color.new( 0xff000000 )
     HIGHLIGHT   = Gosu::Color.new( 0xffe8ffff )   # Liquid Cyan

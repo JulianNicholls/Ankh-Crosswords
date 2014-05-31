@@ -37,7 +37,7 @@ module Crossword
       @width  = BASE_WIDTH  + grid.size.width
       @height = BASE_HEIGHT + grid.size.height
 
-      super( @width, @height, false, 100 )
+      super( @width, @height, false, 50 )
 
       self.caption = "Ankh #{@game.title}"
 

@@ -18,12 +18,12 @@ module Crossword
       # Clue Area
       origin.move_by!( MARGIN, MARGIN )
       size.deflate!( @window.grid.size.width + MARGIN * 5, MARGIN * 2 )
-      @window.draw_rectangle( origin, size, 0, BLACK )
+      @window.draw_rectangle( origin, size, 0, BACKGROUND )
 
       # Grid Area
       origin = GRID_ORIGIN.offset( -1 * MARGIN, -1 * MARGIN )
       size   = @window.grid.size.inflate( MARGIN * 2, MARGIN * 2 )
-      @window.draw_rectangle( origin, size, 0, BLACK )
+      @window.draw_rectangle( origin, size, 0, BACKGROUND )
     end
 
     def grid( show_errors )
@@ -61,19 +61,19 @@ module Crossword
     end
 
     def cell_number( pos, number )
-      @window.font[:number].draw( number, pos.x + 2, pos.y + 1, 1, 1, 1, BLACK )
+      @window.font[:number].draw( number, pos.x + 2, pos.y + 1, 2, 1, 1, BLACK )
     end
 
     def cell_letter( pos, cell, show_errors )
       cf     = @window.font[:cell]
       lpos   = pos.offset( cf.centred_in( cell.user, CELL_SIZE ) )
       colour = cell.error && show_errors ? ERROR_FG : BLACK
-      cf.draw( cell.user, lpos.x, lpos.y + 1, 1, 1, 1, colour )
+      cf.draw( cell.user, lpos.x, lpos.y + 1, 2, 1, 1, colour )
     end
 
     def clue_header( pos, header )
       hf = @window.font[:header]
-      hf.draw( header, pos.x, pos.y, 1, 1, 1, WHITE )
+      hf.draw( header, pos.x, pos.y, 2, 1, 1, WHITE )
 
       pos.move_by!( 0, hf.height + 1 )
     end

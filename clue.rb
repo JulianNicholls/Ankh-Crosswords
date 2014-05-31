@@ -8,7 +8,14 @@ module Crossword
     NUMBER_WIDTH = 21
 
     def self.from_text( line )
+#      begin
       dir, num, t, row, col = line.split ';'
+#      rescue => e
+#        puts e.message
+#        puts "'#{line}'"
+#        raise
+#      end
+        
       fail "Clue loading problem:\n##{t}#" if t[0] != '<' || t[-1] != '>'
       text = t[1..-2] # Remove <>
 
@@ -27,13 +34,13 @@ module Crossword
       size  = game.font[:clue].measure( text )
       tlc   = pos.dup
 
-      game.font[:clue].draw( number, pos.x, pos.y, 2, 1, 1, WHITE )
+      game.font[:clue].draw( number, pos.x, pos.y, 3, 1, 1, WHITE )
 
       draw_wrapped( game, pos, text, (size.width / (max_width - NUMBER_WIDTH)).ceil )
 
       @region = Region.new( tlc, Size.new( max_width, pos.y - tlc.y ) )
 
-      @region.draw( game, 1, CLUE_LIGHT ) if selected
+      @region.draw( game, 2, CLUE_LIGHT ) if selected
 
       size.height + 1
     end
@@ -58,7 +65,7 @@ module Crossword
     def draw_simple( game, pos, text )
       font = game.font[:clue]
 
-      font.draw( text, pos.x + NUMBER_WIDTH, pos.y, 2, 1, 1, WHITE )
+      font.draw( text, pos.x + NUMBER_WIDTH, pos.y, 3, 1, 1, WHITE )
       pos.move_by!( 0, font.height + 1 )
     end
 
