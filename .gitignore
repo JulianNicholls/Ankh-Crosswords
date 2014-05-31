@@ -1,6 +1,5 @@
 python_puz
-puz.hex
-shortyz.hex
+*.hex
 .rubocop.yml
 *.ankh
 
