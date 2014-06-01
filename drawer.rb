@@ -15,10 +15,7 @@ module Crossword
       size   = Size.new( @window.width, @window.height )
       @window.draw_rectangle( origin, size, 0, WHITE )
 
-      # Clue Area
-      origin.move_by!( MARGIN, MARGIN )
-      size.deflate!( @window.grid.size.width + MARGIN * 5, MARGIN * 2 )
-      @window.draw_rectangle( origin, size, 0, BACKGROUND )
+      clue_area( origin, size )
 
       # Grid Area
       origin = GRID_ORIGIN.offset( -1 * MARGIN, -1 * MARGIN )
@@ -46,6 +43,12 @@ module Crossword
     end
 
     private
+    
+    def clue_area( origin, size )
+      origin.move_by!( MARGIN, MARGIN )
+      size.deflate!( @window.grid.size.width + MARGIN * 5, MARGIN * 2 )
+      @window.draw_rectangle( origin, size, 0, BACKGROUND )
+    end
 
     def cell( pos, cell, show_errors )
       bk = BK_COLOURS[cell.highlight]

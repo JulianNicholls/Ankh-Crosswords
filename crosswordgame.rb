@@ -15,7 +15,7 @@ module Crossword
   class Puzzle < Gosu::Window
     include Constants
 
-    attr_reader :width, :height, :font, :grid, :start_time
+    attr_reader :width, :height, :font, :image, :grid, :start_time
 
     KEY_FUNCS = {
       Gosu::KbEscape  =>  -> { handle_escape },
@@ -42,6 +42,7 @@ module Crossword
       self.caption = "Ankh #{@game.title}"
 
       @font       = ResourceLoader.fonts( self )
+      @image      = ResourceLoader.images( self )
       @drawer     = Drawer.new( self )
 
       initial_state
