@@ -48,6 +48,11 @@ module Crossword
       origin.move_by!( MARGIN, MARGIN )
       size.deflate!( @window.grid.size.width + MARGIN * 5, MARGIN * 2 )
       @window.draw_rectangle( origin, size, 0, BACKGROUND )
+      
+      ankh = @window.image[:ankh] 
+      icon_left = (size.width  - ankh.width) / 2 
+      icon_top  = (size.height - ankh.height) / 2 
+      ankh.draw( icon_left, icon_top, 1 )
     end
 
     def cell( pos, cell, show_errors )
