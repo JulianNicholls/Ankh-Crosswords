@@ -19,8 +19,10 @@ module Crossword
 
     def draw
       @game.draw_rectangle( @pos.offset( -10, -10 ), @size.inflate( 20, 20 ),
-                            5, BLACK )
-      @game.draw_rectangle( @pos, @size, 5, CLUE_LIGHT )
+                            5, SHADOW )
+                            
+      @game.draw_rectangle( @pos, @size, 5, WHITE )
+      @game.draw_rectangle( @pos.offset( 1, 1 ), @size.deflate( 2, 2 ), 5, CLUE_LIGHT )
       @game.draw_rectangle( @pos.offset( MARGIN, MARGIN ),
                             @size.deflate( MARGIN * 2, MARGIN * 2 ), 5, HIGHLIGHT )
 

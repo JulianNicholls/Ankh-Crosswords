@@ -22,6 +22,7 @@ module Crossword
     BACKGROUND  = Gosu::Color.new( 0xff74410d )   # Brown
     WHITE       = Gosu::Color.new( 0xffffffff )
     BLACK       = Gosu::Color.new( 0xff000000 )
+    SHADOW      = Gosu::Color.new( 0x80000000 )
     HIGHLIGHT   = Gosu::Color.new( 0xffe8ffff )   # Liquid Cyan
     CURRENT     = Gosu::Color.new( 0xffa8ffff )   # Less Liquid Cyan
     CLUE_LIGHT  = Gosu::Color.new( 0xff009090 )   # Dark Cyan
