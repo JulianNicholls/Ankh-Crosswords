@@ -19,15 +19,15 @@ module Crossword
     attr_reader :width, :height, :size
 
     def self.from_ankh_file( file )
-      width, height = file.gets.strip.split( ',' ).map( &:to_i )
+      width, height = file.gets.chomp.split( ',' ).map( &:to_i )
 
       this = new
       this.set_dimensions( width, height )
 
-      (width * height).times { this.add_cell( Cell.from_text file.gets.strip ) }
+      (width * height).times { this.add_cell( Cell.from_text file.gets.chomp ) }
 
       until (line = file.gets).nil?
-        this.add_clue( Clue.from_text line.strip )
+        this.add_clue( Clue.from_text line.chomp )
       end
 
       this
