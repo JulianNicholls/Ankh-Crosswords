@@ -29,8 +29,8 @@ module Crossword
       title, elapsed, grid = '', 0, nil
 
       open( ankh, 'r' ) do |file|
-        title = file.gets.strip
-        elapsed = file.gets.strip.to_f
+        title = file.gets.chomp
+        elapsed = file.gets.chomp.to_f
         grid = Grid.from_ankh_file( file )
       end
 
