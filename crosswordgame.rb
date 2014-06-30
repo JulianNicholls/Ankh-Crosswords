@@ -19,7 +19,6 @@ module Crossword
 
     KEY_FUNCS = {
       Gosu::KbEscape  =>  -> { handle_escape },
-      Gosu::KbSpace   =>  -> { @position = @current.gpos },
       Gosu::KbTab     =>  -> { handle_tab },
       Gosu::KbF1      =>  -> { @help_mode = !@help_mode },
 
@@ -27,6 +26,8 @@ module Crossword
       Gosu::KbUp      =>  -> { @position = @grid.cell_up( @current.gpos ) },
       Gosu::KbLeft    =>  -> { @position = @grid.cell_left( @current.gpos ) },
       Gosu::KbRight   =>  -> { @position = @grid.cell_right( @current.gpos ) },
+
+      Gosu::KbSpace   =>  -> { @position = @current.gpos },
 
       Gosu::MsLeft    =>  -> { @position = GridPoint.from_xy( mouse_x, mouse_y ) }
     }
@@ -41,9 +42,9 @@ module Crossword
 
       self.caption = "Ankh #{@game.title}"
 
-      @font       = ResourceLoader.fonts( self )
-      @image      = ResourceLoader.images( self )
-      @drawer     = Drawer.new( self )
+      @font   = ResourceLoader.fonts( self )
+      @image  = ResourceLoader.images( self )
+      @drawer = Drawer.new( self )
 
       initial_state
     end
@@ -118,14 +119,14 @@ module Crossword
         empty_cell
       else
         current_cell.user = @char
-        set_complete
+        check_complete
         @grid.next_word_cell( @current )
       end
 
       @char = nil
     end
 
-    def set_complete
+    def check_complete
       case @grid.completed
       when :complete
         @complete = true
@@ -136,35 +137,36 @@ module Crossword
     end
 
     def empty_cell
-      cell_empty = current_cell.user.empty?
+      cell_empty = current_cell.empty?
+      
       @grid.prev_word_cell( @current ) if cell_empty
+      
       current_cell.user = ''
       current_cell.highlight = :none
+      
       @grid.prev_word_cell( @current ) unless cell_empty
     end
 
     def update_current
       unhighlight
 
-      return current_from_clue if @position.out_of_range?( @grid )
+      return set_current_from_clue if @position.out_of_range?( @grid )
 
-      current_from_cell
+      set_current_from_cell
 
       @position = nil
     end
 
     # Clicked out of the grid, probably on a clue
 
-    def current_from_clue
+    def set_current_from_clue
       mouse_pos = Point.new( mouse_x, mouse_y )
 
       @grid.clues.each do |clue|
-        next if clue.region.nil?
+        next if clue.region.nil? || !clue.region.contains?( mouse_pos )
 
-        if clue.region.contains?( mouse_pos )
-          @current = CurrentState.from_clue( clue, grid )
-          break
-        end
+        @current = CurrentState.from_clue( clue, grid )
+        break
       end
 
       @position = nil
@@ -172,17 +174,17 @@ module Crossword
 
     # Clicked inside the grid
 
-    def current_from_cell
+    def set_current_from_cell
       new_num  = @grid.word_num_from_pos( @position, @current.dir )
 
-      unless new_num == 0   # Blank square, most likely
-        if @position == @current.gpos  # Click on current == swap direction
-          @current.swap_direction
-          new_num = @grid.word_num_from_pos( @position, @current.dir )
-        end
+      return if new_num == 0  # Blank square, most likely
 
-        @current.new_word( new_num, @position )
+      if @position == @current.gpos  # Click on current == swap direction
+        @current.swap_direction
+        new_num = @grid.word_num_from_pos( @position, @current.dir )
       end
+
+      @current.new_word( new_num, @position )
     end
 
     def handle_escape
@@ -197,13 +199,17 @@ module Crossword
     def handle_tab
       unhighlight
 
-      if button_down?( Gosu::KbLeftShift ) || button_down?( Gosu::KbRightShift )
+      if shift_pressed?
         number = @grid.prev_clue( @current.number, @current.dir )
       else
         number = @grid.next_clue( @current.number, @current.dir )
       end
 
       @current.new_word( number, @grid.cell_pos( number, @current.dir ) )
+    end
+    
+    def shift_pressed?
+      button_down?( Gosu::KbLeftShift ) || button_down?( Gosu::KbRightShift )
     end
   end
 

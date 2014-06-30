@@ -8,14 +8,14 @@ module Crossword
     NUMBER_WIDTH = 21
 
     def self.from_text( line )
-#      begin
+      # begin
       dir, num, t, row, col = line.split ';'
-#      rescue => e
-#        puts e.message
-#        puts "'#{line}'"
-#        raise
-#      end
-        
+      # rescue => e
+      #   puts e.message
+      #   puts "'#{line}'"
+      #   raise
+      # end
+
       fail "Clue loading problem:\n##{t}#" if t[0] != '<' || t[-1] != '>'
       text = t[1..-2] # Remove <>
 

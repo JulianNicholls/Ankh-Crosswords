@@ -103,7 +103,7 @@ module Crossword
       each_with_position do |cell, _|
         next if cell.blank?
 
-        return false  if cell.user == ''
+        return false  if cell.empty?
         return :wrong if cell.error
       end
 

@@ -73,7 +73,7 @@ module Crossword
       end
 
       # Do what's necessary to move to the next and previous cell in the
-      # specified direction, teturning whether it's valid
+      # specified direction, returning whether it's valid
       def move_cell( gpoint, direction, increment )
         fail "Direction: '#{direction}'" unless [:across, :down].include? direction
 

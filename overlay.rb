@@ -18,14 +18,26 @@ module Crossword
     end
 
     def draw
+      draw_background
+      draw_text
+    end
+
+    private
+
+    def draw_background
       @game.draw_rectangle( @pos.offset( -10, -10 ), @size.inflate( 20, 20 ),
                             5, SHADOW )
-                            
+
       @game.draw_rectangle( @pos, @size, 5, WHITE )
-      @game.draw_rectangle( @pos.offset( 1, 1 ), @size.deflate( 2, 2 ), 5, CLUE_LIGHT )
+
+      @game.draw_rectangle( @pos.offset( 1, 1 ), @size.deflate( 2, 2 ),
+                            5, CLUE_LIGHT )
+
       @game.draw_rectangle( @pos.offset( MARGIN, MARGIN ),
                             @size.deflate( MARGIN * 2, MARGIN * 2 ), 5, HIGHLIGHT )
+    end
 
+    def draw_text
       hpos = @pos.offset( (@size.width - @hdrsize.width) / 2, @hdrsize.height / 2 )
 
       @header.draw( 'Complete', hpos.x, hpos.y, 6, 1, 1, BLACK )

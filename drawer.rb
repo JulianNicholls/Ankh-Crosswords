@@ -43,15 +43,15 @@ module Crossword
     end
 
     private
-    
+
     def clue_area( origin, size )
       origin.move_by!( MARGIN, MARGIN )
       size.deflate!( @window.grid.size.width + MARGIN * 5, MARGIN * 2 )
       @window.draw_rectangle( origin, size, 0, BACKGROUND )
-      
-      ankh = @window.image[:ankh] 
-      icon_left = (size.width  - ankh.width) / 2 
-      icon_top  = (size.height - ankh.height) / 2 
+
+      ankh      = @window.image[:ankh]
+      icon_left = (size.width  - ankh.width) / 2
+      icon_top  = (size.height - ankh.height) / 2
       ankh.draw( icon_left, icon_top, 1 )
     end
 
@@ -65,7 +65,7 @@ module Crossword
       @window.draw_rectangle( pos.offset( 1, 1 ), CELL_SIZE.deflate( 2, 2 ), 1, bk )
 
       cell_number( pos, cell.number )       unless cell.number == 0
-      cell_letter( pos, cell, show_errors ) unless cell.user.empty?
+      cell_letter( pos, cell, show_errors ) unless cell.empty?
     end
 
     def cell_number( pos, number )

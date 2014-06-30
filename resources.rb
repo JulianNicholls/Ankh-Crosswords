@@ -12,11 +12,11 @@ module Crossword
         o_title:  Gosu::Font.new( window, Gosu.default_font_name, 24 )
       }
     end
-    
+
     def self.images( window )
       {
         ankh:   Gosu::Image.new( window, 'media/ankh.png', true )
-      }      
+      }
     end
   end
 end

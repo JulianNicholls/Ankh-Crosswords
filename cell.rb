@@ -33,6 +33,12 @@ module Crossword
         @user  = ltr
         @error = user != '' && letter != user
       end
+      
+      # Empty means not filled in by user
+      
+      def empty?
+        user.empty?
+      end
 
       def to_text
         "#{letter},#{user},#{number}"
