@@ -228,6 +228,6 @@ module Crossword
   end
 end
 
-filename = ARGV[0] || '2014-4-22-LosAngelesTimes.puz'
+filename = ARGV[0] || 'Puzzles/2014-4-22-LosAngelesTimes.puz'
 
 Crossword::Puzzle.new( filename ).show
