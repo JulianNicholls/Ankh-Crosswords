@@ -7,17 +7,17 @@ module Crossword
       attr_reader :letter, :user, :error
       attr_accessor :number, :highlight
 
-      def self.from_text( line )
+      def self.from_text(line)
         l, u, n = line.split ','
 
-        me = new( l )
+        me = new(l)
         me.number = n.to_i unless n.empty?
         me.user = u
 
         me
       end
 
-      def initialize( letter )
+      def initialize(letter)
         @letter = letter
         @user   = ''
         @number = 0
@@ -29,13 +29,13 @@ module Crossword
         @letter == '.'
       end
 
-      def user=( ltr )
+      def user=(ltr)
         @user  = ltr
         @error = user != '' && letter != user
       end
-      
+
       # Empty means not filled in by user
-      
+
       def empty?
         user.empty?
       end
