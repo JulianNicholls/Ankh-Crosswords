@@ -41,7 +41,7 @@ module Crossword
       @traverser      = Traverser.new(self)
       @grid           = []
 
-      return if raw_rows.nil?
+      return unless raw_rows
 
       set_dimensions(raw_rows[0].size, raw_rows.size)
       build_grid(raw_rows)
@@ -64,6 +64,15 @@ module Crossword
 
     def cell_at(pos)
       @grid[pos.row * @width + pos.col]
+    end
+
+    def each
+      height.times do |row|
+        width.times do |col|
+          pos = GridPoint.new(row, col)
+          yield cell_at(pos)
+        end
+      end
     end
 
     def each_with_position
@@ -100,7 +109,7 @@ module Crossword
     end
 
     def completed
-      each_with_position do |cell, _|
+      each do |cell|
         next if cell.blank?
 
         return false  if cell.empty?

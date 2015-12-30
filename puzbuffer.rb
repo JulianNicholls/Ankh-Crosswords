@@ -49,7 +49,7 @@ class PuzzleBuffer
 
   def unpack_multiple(spec, size)
     start = @pos
-    @pos += (size || SIZES[spec[1]])
+    @pos += (size || SIZES[spec[0]])
     @data[start..@pos].unpack(spec)
   end
 

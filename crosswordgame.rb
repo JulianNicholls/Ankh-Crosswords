@@ -43,8 +43,8 @@ module Crossword
 
       self.caption = "Ankh #{@game.title}"
 
-      @font   = ResourceLoader.fonts(self)
-      @image  = ResourceLoader.images(self)
+      @font   = ResourceLoader.fonts
+      @image  = ResourceLoader.images
       @drawer = Drawer.new(self)
 
       initial_state

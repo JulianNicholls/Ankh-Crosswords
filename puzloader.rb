@@ -52,14 +52,14 @@ class PuzzleLoader
   def load_check_values
     seek_to(SIGNATURE, -2)
 
-    @file_checksum  = unpack('<S')
+    @file_checksum  = unpack('S<')
     @sig            = unpack_zstring
-    @cib_checksum   = unpack('<S')
+    @cib_checksum   = unpack('S<')
     @lowparts       = unpack_multiple('C4', 4)
     @highparts      = unpack_multiple('C4', 4)
     @version        = unpack('Z4', 4)
-    @reserved1c     = unpack('<S')
-    @scrambled_sum  = unpack('<S')
+    @reserved1c     = unpack('S<')
+    @scrambled_sum  = unpack('S<')
     @reserved20     = unpack_multiple('C12', 12)
   end
 
@@ -75,10 +75,10 @@ class PuzzleLoader
   end
 
   def load_size
-    @width, @height, @num_clues = unpack_multiple('C2<S', 4)
+    @width, @height, @num_clues = unpack_multiple('C2S<', 4)
     # Puzzle Type, 1 = Normal, 0x0401 = Diagramless
     seek_by(2)
-    @scrambled = unpack('<S')
+    @scrambled = unpack('S<')
   end
 
   def load_answer

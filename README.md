@@ -1,4 +1,6 @@
-# Ankh PuzzleLoader
+# Ankh Crossword Loader
+
+## This is now working again, with Ruby 2.2.4, gosu_enhanced 0.4.2, and Gosu 0.10.4.
 
 Player for .puz files, used for crosswords from newspapers such as the L.A. 
 Times.

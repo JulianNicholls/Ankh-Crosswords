@@ -44,7 +44,7 @@ class GameRepository
   end
 
   def self.write_grid(file, grid)
-    grid.each_with_position do |cell, _|
+    grid.each do |cell|
       file.puts cell.to_text
     end
   end
