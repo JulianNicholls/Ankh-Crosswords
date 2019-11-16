@@ -24,7 +24,7 @@ class GameRepository
 
     return nil unless File.exist? ankh
 
-    open(ankh, 'r') do |file|
+    open(ankh, 'rb') do |file|
       title   = file.gets.chomp
       elapsed = file.gets.chomp.to_f
       grid    = Crossword::Grid.from_ankh_file(file)
@@ -34,7 +34,7 @@ class GameRepository
   end
 
   def self.save_ankh_file(game)
-    open(ankh_filename(game.filename), 'w') do |file|
+    open(ankh_filename(game.filename), 'wb') do |file|
       file.puts game.title
       file.puts game.elapsed.floor
       file.puts "#{game.grid.width},#{game.grid.height}"
