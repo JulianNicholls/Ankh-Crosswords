@@ -22,8 +22,8 @@ module Constants
   WHITE       = Gosu::Color.new(0xffffffff)
   BLACK       = Gosu::Color.new(0xff000000)
   SHADOW      = Gosu::Color.new(0x80000000)
-  HIGHLIGHT   = Gosu::Color.new(0xffe8ffff)   # Liquid Cyan
-  CURRENT     = Gosu::Color.new(0xffa8ffff)   # Less Liquid Cyan
+  HIGHLIGHT   = Gosu::Color.new(0xffc8ffff)   # Liquid Cyan
+  CURRENT     = Gosu::Color.new(0xff98ffff)   # Less Liquid Cyan
   CLUE_LIGHT  = Gosu::Color.new(0xff4d2c09)   # Dark Brown
   ERROR_BK    = Gosu::Color.new(0xffffe0e0)   # Liquid Pink
   ERROR_FG    = Gosu::Color.new(0xffff0000)   # Bold Red
