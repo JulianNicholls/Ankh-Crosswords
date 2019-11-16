@@ -42,14 +42,14 @@ module Crossword
       hpos = @pos.offset((@size.width - @hdrsize.width) / 2,
                          @hdrsize.height / 2)
 
-      @header.draw('Complete', hpos.x, hpos.y, 6, 1, 1, BLACK)
+      @header.draw_text('Complete', hpos.x, hpos.y, 6, 1, 1, BLACK)
     end
 
     def draw_time
       hpos = @pos.offset((@size.width - @hdrsize.width) / 2,
                          @hdrsize.height * 5 / 2)
       time = format 'Time: %d:%02d', @elapsed / 60, @elapsed % 60
-      @text.draw(time, hpos.x, hpos.y, 6, 1, 1, BLACK)
+      @text.draw_text(time, hpos.x, hpos.y, 6, 1, 1, BLACK)
     end
   end
 end

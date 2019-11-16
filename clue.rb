@@ -35,7 +35,7 @@ module Crossword
       size  = font.measure(text)
       tlc   = pos.dup
 
-      font.draw(number, pos.x, pos.y, 3, 1, 1, WHITE)
+      font.draw_text(number, pos.x, pos.y, 3, 1, 1, WHITE)
 
       draw_wrapped(game, pos, text,
                    (size.width / (max_width - NUMBER_WIDTH)).ceil)
@@ -67,7 +67,7 @@ module Crossword
     def draw_simple(game, pos, text)
       font = game.font[:clue]
 
-      font.draw(text, pos.x + NUMBER_WIDTH, pos.y, 3, 1, 1, WHITE)
+      font.draw_text(text, pos.x + NUMBER_WIDTH, pos.y, 3, 1, 1, WHITE)
       pos.move_by!(0, font.height + 1)
     end
 
