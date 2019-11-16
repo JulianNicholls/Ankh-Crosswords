@@ -1,15 +1,18 @@
 GEM
   remote: https://rubygems.org/
   specs:
-    gosu (0.10.4)
-    gosu_enhanced (0.4.2)
-      gosu (~> 0.10)
+    gosu (0.14.5)
+    gosu_enhanced (0.4.5)
+      gosu (~> 0.14.5)
 
 PLATFORMS
   ruby
 
 DEPENDENCIES
-  gosu_enhanced (~> 0.4.2)
+  gosu_enhanced (~> 0.4.5)
+
+RUBY VERSION
+   ruby 2.6.0p0
 
 BUNDLED WITH
-   1.11.2
+   1.17.2
